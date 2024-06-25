@@ -1,0 +1,87 @@
+Progetto PMCNS
+Goals e obiettivi
+Lo studio si concentra sulla minimizzazione dei tempi di attesa della prima visita all’interno di un pronto soccorso, con l’obiettivo di rispettare i QoS imposti a livello statale:
+1.	Codice rosso: accesso immediato
+2.	Codice arancione: 15 minuti
+3.	Azzurro: 60 minuti
+4.	Verde: 120 minuti
+5.	Bianco: 240 minuti
+Il miglioramento deve essere raggiunto senza modificare il numero di medici, o del personale medico.
+Modello Concettuale
+Identifichiamo le variabili di stato che sono rilevanti per il nostro sistema.
+Utenti del sistema:
+1.	Pazienti in codice rosso: interruzione o compromissione di una o più funzioni vitali
+2.	Pazienti in codice arancione: funzioni vitali a rischio
+3.	Pazienti in codice azzurro: condizione stabile con sofferenza, richiede approfondimenti diagnostici e visite specialistiche complesse.
+4.	Pazienti in codice verde: condizione stabile senza rischio evolutivo. Richiede approfondimenti diagnostici e visite monospecialistiche
+5.	Bianco: problema non urgente
+Il sistema è suddivisibile nelle seguenti aree:
+1.	Triage: assegnazione codice di gravità al paziente
+2.	Code di attesa: code suddivise in base al proprio codice di gravità
+3.	Visita medica: visita in cui il medico deciderà gli esami ecc…
+4.	Visite specialistiche:
+1.	Esami del sangue
+2.	Ecografia
+3.	…
+4.	…
+5.	…
+
+
+Astrazioni
+Paziente -> job
+Triage -> centro
+Visita medica -> centro
+Visita specialistica -> centro
+Tempo di triage -> tempo necessario per definire la gravità del paziente ed assegnare un codice
+Tempo di attesa visita medica -> tempo necessario per ricevere la prima visita medica dopo aver effettuato il triage
+Tempo di attesa visita specialistica -> tempo necessario per ricevere una visita specialistica richiesta dal medico durante la visita medica
+Tempo di permanenza -> tempo totale trascorso all’interno del pronto soccorso
+Eventi
+Per il sistema:
+Un evento considerabile è l’arrivo di un nuovo job, tramite centro triage oppure tramite ambulanza, in quest’ultimo caso già munito di codice
+Un job può uscire dal sistema in caso di dimissioni, ospedalizzazione, o abbandono volontario della struttura
+Per il centro triage:
+Un evento considerabile è l’arrivo di un nuovo job, che coincide con l’arrivo di un nuovo job nel sistema
+Un job esce dal centro dopo l’assegnazione del codice
+Per il centro visita medica:
+Un evento considerabile è l’arrivo di un nuovo job, che coincide con l’uscita di un job dal centro triage, o l’arrivo di nuovo job tramite ambulanza.
+Un job può uscire dal centro visita medica in caso di abbandono volontario, per dimissioni, o per ospedalizzazione.
+Per il centro visita specialistica:
+Un evento considerabile è l’arrivo di un nuovo job, che coincide con l’uscita di un job dal centro visita medica
+Un job può uscire dal centro visita specialistica in caso di termine della visita.
+Distribuzioni e numero di serventi
+Numero di medici totali nel PS: 27
+Numero di ore lavorative per medico: 36 ore
+Numero di turni: 4 turni da 6 ore
+Numero di turni settimanali per medico: 6
+Numero medio di medici: Numero di medici * Numero di turni per medico / Numero di turni * 7 ( giorni settimanali ) = 5.78 Arrotondo a 5
+Numero medici medio visite specialistiche: 2
+Distribuzioni
+Arrivi al pronto soccorso -> esponenziali
+Arrivi ambulanza -> esponenziali
+Servizio visita -> log normale (diversa per ogni codice)
+ Probabilità
+P1: 6,3%
+P2: 19.6%
+P3: 38.3%
+P4: 30.6%
+P5: 4.8%
+Pexit = 0.4%
+Numero di accessi: 48.441
+Numero di arrivi/secondo: 1.536 x 10^-3
+Numero di arrivi/minuto: 92.16 x 10^-3 = 10.85031275 (1/tasso)
+Numero di arrivi/giorno: 132.71
+Tempi di servizio triage:
+Rosso: 0
+Arancione:  57
+Blu:        164
+Verde:      154
+Bianco:     148
+Ecografia: 50% fino ad  un ora, 40% fino a 3 ore, 10% superiore a 3 ore
+Radiografia standard: 50% fino ad un ora, 35.71% fino a 3 ore, 14.29% superiore a 3 ore
+Emocromo: 65% fino ad un ora, 35% fino a 3 ore
+TAC: 42.85% fino ad un ora, 35.71% tra un ora e 3 ore, 7.14% tra 3 e 6, 14.28% + di 6 ore
+Elettrocardiogramma: 60% fino ad un ora, 40% da 1 a 3 ore
+Altro: 35% fino ad  un ora, 35% fino a 3 ore, 20% tra 3 e 6, 10% + di 6
+In media ogni paziente svolge: 1.75 visite
+
