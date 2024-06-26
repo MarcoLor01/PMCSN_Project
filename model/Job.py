@@ -16,3 +16,6 @@ class Job:
 
     def triage(self, codice: Code):
         self.__codice = codice
+
+    def getCodice(self):
+        return self.__codice

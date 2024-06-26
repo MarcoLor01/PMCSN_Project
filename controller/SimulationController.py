@@ -4,6 +4,8 @@ from utility.Rngs import selectStream, plantSeeds
 from utility.Rngs import DEFAULT
 from utility.Rvgs import Exponential, Lognormal
 from model.Job import Job
+from utility.ArrivalService import *
+from utility.Utils import Min
 
 summary = 0
 max_simulation = 2000000
@@ -28,30 +30,63 @@ class time:
     last = -1  # last arrival time                   */
 
 
-def GetArrival():
-    # ---------------------------------------------
-    # * generate the next arrival time, with rate 1/2
-    # * ---------------------------------------------
-    # */
+
+
+def Simulation():
     global arrivalTemp
-    selectStream(0)
-    arrivalTemp += Exponential(1 / TASSO_DI_INGRESSO)  # Lavoriamo su job al minuto
-    newJob = Job(int(arrivalTemp))
-    return newJob
+    index = 0  # used to count departed jobs         */
+    number = 0  # number in the node                  */
+    arrivalTemp=arrivalTemp + GetArrival()
+    t.arrival = arrivalTemp  # schedule the first arrival            */
+    while (t.arrival < STOP) or (number > 0):
+        t.next = Min(t.arrival, t.completion)  # next event time   */
+        if number > 0:  # update integrals  */
+            area.node += (t.next - t.current) * number
+            area.queue += (t.next - t.current) * (number - 1)
+            area.service += (t.next - t.current)
+        # EndIf
+
+        t.current = t.next  # advance the clock */
+
+        if t.current == t.arrival:  # process an arrival */
+
+            number += 1
+            arrivalTemp = arrivalTemp + GetArrival()
+            t.arrival = arrivalTemp
+
+            if t.arrival > STOP:
+                t.last = t.current
+                t.arrival = INFINITY
+
+            if number == 1:
+                t.completion = t.current + GetServiceTriage()
+        # EndOuterIf
+        else:  # process a completion */
+            index += 1
+            number -= 1
+
+            if number > 0:
+                t.completion = t.current + GetServiceTriage()
+            else:
+                t.completion = INFINITY
+
+            # EndWhile
+    print("   average interarrival time = {0:6.2f}".format(t.last / (index)))
+    print("   average wait ............ = {0:6.2f}".format(area.node / (index)))
+    print("   average delay ........... = {0:6.2f}".format(area.queue / (index)))
+    print("   average service time .... = {0:6.2f}".format(area.service / (index)))
+    print("   average # in the node ... = {0:6.2f}".format(area.node / t.current))
+    print("   average # in the queue .. = {0:6.2f}".format(area.queue / t.current))
+    print("   utilization ............. = {0:6.2f}".format(area.service / t.current))
 
 
-def GetServiceTriage():
-    # --------------------------------------------
-    # * generate the next service time with rate 1/2
-    # * --------------------------------------------
-    # */
-    selectStream(2)
-    return Lognormal(MEDIA_DI_SERVIZIO_TRIAGE, VARIANZA_DI_SERVIZIO_TRIAGE)
 
 
+
+area = track()
+t = time()
 def main():
-    for i in range(0, 100):
-        print("Time: ", GetServiceTriage())
+    Simulation()
 
-
-main()
+if __name__ == "__main__":
+    main()
