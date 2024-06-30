@@ -1,15 +1,18 @@
 import numpy as np
 # Costanti per la simulazione del sistema
 START = 0.0  # initial time */
-STOP = 2000000.0  # terminal time */
+STOP = 200000.0  # terminal time */
 INFINITY = float(100.0 * STOP)  # must be much larger than STOP  */
 
 #Triage
 TASSO_DI_INGRESSO = 0.092163242  # ingressi (arrivals per unit time)
-NUMERO_DI_SERVER = 2
+NUMERO_DI_SERVER_TRIAGE = 1
 SX_SERVIZIO_TRIAGE = 4
 DX_SERVIZIO_TRIAGE = 7
 
+#Queue
+NUMERO_DI_SERVER_QUEUE = 5
+MEDIA_TASSO_DI_SERVIZIO_QUEUE = 0.8  # Tasso di servizio del server 2
 
 MEDIA_DI_SERVIZIO_TRIAGE_ARANCIONE = 57  # Tasso di servizio del server 1
 MEDIA_DI_SERVIZIO_TRIAGE_BLU = 164  # Tasso di servizio del server 1
