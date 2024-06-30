@@ -5,13 +5,13 @@ from utility.Rngs import DEFAULT
 from utility.Rvgs import Exponential, Uniform
 from model.Job import Job
 
-summary = 0
-max_simulation = 2000000
-step_size = 500
-iteration = 0
-arrivalTemp = START  # global temp var for getArrival function
+#summary = 0
+#max_simulation = 2000000
+#step_size = 500
+#iteration = 0
+#arrivalTemp = START  # global temp var for getArrival function
 
-plantSeeds(DEFAULT)
+#plantSeeds(DEFAULT)
 
 
 def GetArrival():
