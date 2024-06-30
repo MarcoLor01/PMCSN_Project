@@ -1,7 +1,7 @@
 import numpy as np
 # Costanti per la simulazione del sistema
 START = 0.0  # initial time */
-STOP = 2000000.0  # terminal (close the door) time */
+STOP = 20.0  # terminal (close the door) time */
 INFINITY = float(100.0 * STOP)  # must be much larger than STOP  */
 
 TASSO_DI_INGRESSO = 0.092163242  # ingressi (arrivals per unit time)

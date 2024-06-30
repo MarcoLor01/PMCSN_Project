@@ -20,7 +20,7 @@ def GetArrival():
     # * ---------------------------------------------
     # */
     selectStream(0)
-    return  Exponential(1 / TASSO_DI_INGRESSO)
+    return Exponential(1 / TASSO_DI_INGRESSO)
 
 
 def GetServiceTriage():

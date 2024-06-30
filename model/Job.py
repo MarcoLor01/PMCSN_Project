@@ -1,8 +1,3 @@
-from typing import List
-from utility.AnalisiEnum import Analisi
-from utility.CodeEnum import Code
-
-
 class Job:
     def __init__(self, istante_arrivo: int):
         self.__codice = None
@@ -14,8 +9,11 @@ class Job:
     def initializeJob(self, istante_arrivo: int):
         self.__istante_arrivo = istante_arrivo
 
-    def triage(self, codice: Code):
+    def triage(self, codice: int):
         self.__codice = codice
 
     def getCodice(self):
         return self.__codice
+
+    def getArrivalTemp(self):
+        return self.__istante_arrivo

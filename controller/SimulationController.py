@@ -1,11 +1,5 @@
-from utility.CodeEnum import Code
-from utility.Parameters import *
-from utility.Rngs import selectStream, plantSeeds
-from utility.Rngs import DEFAULT
-from utility.Rvgs import Exponential, Lognormal
-from model.Job import Job
 from utility.ArrivalService import *
-from utility.Utils import Min
+from utility.Utils import Minimum
 
 summary = 0
 max_simulation = 2000000
@@ -30,16 +24,15 @@ class time:
     last = -1  # last arrival time                   */
 
 
-
-
 def Simulation():
+
     global arrivalTemp
     index = 0  # used to count departed jobs         */
     number = 0  # number in the node                  */
-    arrivalTemp=arrivalTemp + GetArrival()
+    arrivalTemp = arrivalTemp + GetArrival()
     t.arrival = arrivalTemp  # schedule the first arrival            */
     while (t.arrival < STOP) or (number > 0):
-        t.next = Min(t.arrival, t.completion)  # next event time   */
+        t.next = Minimum(t.arrival, t.completion)  # next event time   */
         if number > 0:  # update integrals  */
             area.node += (t.next - t.current) * number
             area.queue += (t.next - t.current) * (number - 1)
@@ -57,9 +50,9 @@ def Simulation():
             if t.arrival > STOP:
                 t.last = t.current
                 t.arrival = INFINITY
-
             if number == 1:
                 t.completion = t.current + GetServiceTriage()
+
         # EndOuterIf
         else:  # process a completion */
             index += 1
@@ -80,13 +73,13 @@ def Simulation():
     print("   utilization ............. = {0:6.2f}".format(area.service / t.current))
 
 
-
-
-
 area = track()
 t = time()
+
+
 def main():
     Simulation()
+
 
 if __name__ == "__main__":
     main()

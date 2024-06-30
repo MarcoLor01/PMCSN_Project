@@ -3,16 +3,16 @@ from utility.CodeEnum import Code
 from utility.Rngs import random, selectStream
 
 
-def giveCode(job: Job):
+def giveCode():
     selectStream(1)
     code = assign_triage_code()
-    job.triage(code)
-    return job
+    return code
 
 
 def assign_triage_code():
     # Lista dei codici corrispondenti
-    codes = [Code.ROSSO, Code.ARANCIONE, Code.BLU, Code.VERDE, Code.BIANCO]
+    # 1 ROSSO, 2 ARANCIONE, 3 BLU, 4 VERDE, 5 BIANCO
+    codes = [1, 2, 3, 4, 5]
     # Probabilità cumulative corrispondenti
     cumulative_probabilities = [0.063, 0.259, 0.642, 0.948, 1.0]  # Probabilità cumulative
 
