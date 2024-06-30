@@ -34,3 +34,22 @@ def assign_triage_code():
     for code, cum_prob in zip(codes, cumulative_probabilities):
         if rand_num < cum_prob:
             return code
+
+
+def init_triage(arrival_temp):
+    t_triage.arrival = arrival_temp  # schedule the first arrival
+    t_triage.current = START  # set the clock
+    for i in range(NUMERO_DI_SERVER_TRIAGE):
+        t_triage.completion[i] = INFINITY  # the first event can't be a completion */
+        area_triage.service[i] = 0
+    for i in range(len(queue_triage)):
+        area_triage.wait_time[i] = 0
+        area_triage.jobs_complete_color[i] = 0
+    area_triage.node = 0
+    area_triage.queue = 0
+
+
+def pre_process_triage():
+    return 0
+
+

@@ -96,7 +96,6 @@ def simulation():
             #logger.info(f"job for color {i + 1}: {area_triage.jobs_complete_color[i]}")
             logger.info(f"Attesa media {i + 1}: {area_triage.wait_time[i] / area_triage.jobs_complete_color[i]}")
 
-
 def main():
     simulation()
 

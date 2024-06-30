@@ -1,4 +1,5 @@
 import numpy as np
+
 # Costanti per la simulazione del sistema
 START = 0.0  # initial time */
 STOP = 200000.0  # terminal time */
@@ -38,11 +39,7 @@ SIGMA_VALORI = {
     "BIANCO": 0.2  # Esempio, devi calcolare il valore corretto
 }
 
-
-
 TASSO_DI_SERVIZIO = 0.8  # Tasso di servizio del server 2
 TASSO_DI_SERVIZIO3 = 0.6  # Tasso di servizio del server 3
 NUMERO_DI_SERVER1 = 2  # Numero di server del tipo 1
 NUMERO_DI_SERVER2 = 3  # Numero di server del tipo 2
-
-

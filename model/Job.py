@@ -6,14 +6,14 @@ class Job:
         self.__analisi_enum = None
         self.__interrotto = None
 
-    def initializeJob(self, istante_arrivo: int):
+    def initialize_job(self, istante_arrivo: int):
         self.__istante_arrivo = istante_arrivo
 
     def triage(self, codice: int):
         self.__codice = codice
 
-    def getCodice(self):
+    def get_codice(self):
         return self.__codice
 
-    def getArrivalTemp(self):
+    def get_arrival_temp(self):
         return self.__istante_arrivo
