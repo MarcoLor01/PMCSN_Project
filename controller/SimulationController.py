@@ -21,7 +21,7 @@ def simulation():
     init_triage(arrivalTemp)
 
     while (t_triage.arrival < STOP) or (number_triage > 0):
-        pre_process_triage(t_triage, area_triage)
+        pre_process_triage(t_triage, area_triage, number_triage, servers_busy_triage)
 
         if t_triage.current == t_triage.arrival:  # process an arrival
             number_triage += 1
