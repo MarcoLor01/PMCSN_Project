@@ -30,6 +30,13 @@ def GetServiceTriage():
     selectStream(2)
     return Uniform(SX_SERVIZIO_TRIAGE, DX_SERVIZIO_TRIAGE)
 
+def GetServiceQueue():
+    # --------------------------------------------
+    # * generate the next service time with rate 1/2
+    # * --------------------------------------------
+    # */
+    selectStream(4)
+    return Uniform(SX_SERVIZIO_TRIAGE, DX_SERVIZIO_TRIAGE)
 #j=0
 #max=0
 #min=100
