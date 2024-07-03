@@ -21,6 +21,7 @@ t_triage = Time(NUMERO_DI_SERVER_TRIAGE)
 index_triage = 0
 number_triage = 0
 servers_busy_triage = [False] * NUMERO_DI_SERVER_TRIAGE  # track busy/free status of servers
+server_triage = [Job] * NUMERO_DI_SERVER_TRIAGE
 
 
 def give_code():
@@ -56,7 +57,7 @@ def init_triage(arrival_temp):
     area_triage.queue = 0
 
 
-def pre_process_triage(t,area, number, server_busy):
+def pre_process_triage(t, area, number, server_busy):
     t.min_completion, t.server_index = min_time_completion(
         t.completion + [INFINITY])  # include INFINITY for queue check
     t.next = minimum(t.arrival, t.min_completion)  # next event time
@@ -65,41 +66,43 @@ def pre_process_triage(t,area, number, server_busy):
         area.queue += (t.next - t.current) * (number - sum(server_busy))
         for i in range(NUMERO_DI_SERVER_TRIAGE):
             area.service[i] = area.service[i] + (t.next - t.current) * \
-                                     server_busy[i]
+                              server_busy[i]
     t.current = t.next  # advance the clock
 
 
-def arrival_triage(t,servers_busy, queue):
-
-
+def arrival_triage(t, servers_busy, queue_t):
     if t.arrival > STOP:
         t.last = t.current
         t.arrival = INFINITY
 
     for i in range(NUMERO_DI_SERVER_TRIAGE):
         if not servers_busy[i]:  # check if server is free
-            job_to_serve = get_next_job_to_serve(queue)
+            job_to_serve = get_next_job_to_serve(queue_t)
             if job_to_serve:
+                server_triage[i] = job_to_serve
                 servers_busy[i] = True
                 t.completion[i] = t.current + GetServiceTriage()
                 break
 
-def completition_triage(t,server_busy, queue_triage, area):
+
+def completion_triage(t, server_busy, queue_t, area):
     server_busy[t.server_index] = False
     t.completion[t.server_index] = INFINITY
     area.jobs_completed[t.server_index] += 1
-
-    job_to_serve = get_next_job_to_serve(queue_triage)
+    job_completed = server_triage[t.server_index]
+    job_to_serve = get_next_job_to_serve(queue_t)
 
     if job_to_serve:
+        server_triage[t.server_index] = job_to_serve
         server_busy[t.server_index] = True
         t.completion[t.server_index] = t.current + GetServiceTriage()
         area.wait_time[
             job_to_serve.get_codice() - 1] += t.current - job_to_serve.get_arrival_temp()
         area.jobs_complete_color[job_to_serve.get_codice() - 1] += 1
-    return job_to_serve
+    return job_completed
 
-def triage_data(area,t,queue_triage):
+
+def triage_data(area, t, queue_triage):
     logger.info(f"Average interarrival time: {t.last / sum(area.jobs_completed):.2f}")
     logger.info(f"Average wait: {area.node / sum(area.jobs_completed):.2f}")
     logger.info(f"Average delay: {area.queue / sum(area.jobs_completed):.2f}")
@@ -110,7 +113,7 @@ def triage_data(area,t,queue_triage):
     for i in range(NUMERO_DI_SERVER_TRIAGE):
         utilization = area.service[i] / t.current if t.current > 0 else 0
         avg_service_time = area.service[i] / area.jobs_completed[i] if area.jobs_completed[
-                                                                                         i] > 0 else 0
+                                                                           i] > 0 else 0
 
         logger.info(f"Utilization of server {i + 1}: {utilization:.2f}")
         logger.info(f"Average service time of server {i + 1}: {avg_service_time:.2f}")
@@ -119,4 +122,3 @@ def triage_data(area,t,queue_triage):
             # logger.info(f"Waiting time for color {i + 1}: {area.wait_time[i]}")
             # logger.info(f"job for color {i + 1}: {area.jobs_complete_color[i]}")
             logger.info(f"Attesa media {i + 1}: {area.wait_time[i] / area.jobs_complete_color[i]}")
-

@@ -3,6 +3,8 @@ import numpy as np
 # Costanti per la simulazione del sistema
 START = 0.0  # initial time */
 STOP = 200000.0  # terminal time */
+#STOP = 20  # terminal time */
+
 INFINITY = float(100.0 * STOP)  # must be much larger than STOP  */
 
 #Triage
