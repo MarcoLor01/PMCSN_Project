@@ -1,6 +1,7 @@
 from controller.TriageController import *
 from controller.QueueController import *
 from controller.ExamsQueueController import *
+from controller.EsamiController import *
 
 summary = 0
 max_simulation = 2000000
@@ -12,8 +13,18 @@ plantSeeds(DEFAULT)
 
 
 def simulation():
+    #Importiamo singolarmente o un vettore?
+    #global number_Ecg, index_Ecg, queue_Ecg
+    #global number_Emocromo, index_Emocromo, queue_Emocromo
+    #global number_Tac, index_Tac, queue_Tac
+    #global number_Radiografia, index_Radiografia, queue_Radiografia
+    #global number_altriEsami, index_altriEsami, queue_altriEsami
+    global number_Analisi, index_Analisi, queue_Analisi
+
+
     global arrivalTemp
-    global number_triage, number_queue, index_triage, index_queue, queue_triage, queue
+    global number_triage, index_triage, queue_triage
+    global number_queue, index_queue, queue
     arrivalTemp = START
     arrivalTemp = arrivalTemp + GetArrival()
     init_triage(arrivalTemp)

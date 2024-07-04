@@ -17,12 +17,14 @@ queueWhite_q = []
 queueReturnRed_q = []
 queueReturnNotRed_q = []
 queue = [queueRed_q, queueReturnRed_q, queueReturnNotRed_q, queueOrange_q, queueBlue_q, queueGreen_q, queueWhite_q]
+
 server_queue = [Job] * NUMERO_DI_SERVER_QUEUE
 area_queue = Track(NUMERO_DI_SERVER_QUEUE, len(queue))
 t_queue = Time(NUMERO_DI_SERVER_QUEUE)
+
 index_queue = 0
 number_queue = 0.0
-servers_busy_queue = [False] * 5  # track busy/free status of servers
+servers_busy_queue = [False] * NUMERO_DI_SERVER_QUEUE  # track busy/free status of servers
 
 
 def pass_to_queue(job: Job, queue_, t):
