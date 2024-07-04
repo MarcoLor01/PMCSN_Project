@@ -58,9 +58,11 @@ def init_triage(arrival_temp):
 
 
 def pre_process_triage(t, area, number, server_busy):
+
     t.min_completion, t.server_index = min_time_completion(
         t.completion + [INFINITY])  # include INFINITY for queue check
     t.next = minimum(t.arrival, t.min_completion)  # next event time
+
     if number > 0:
         area.node += (t.next - t.current) * number
         area.queue += (t.next - t.current) * (number - sum(server_busy))
@@ -96,22 +98,24 @@ def completion_triage(t, server_busy, queue_t, area):
         server_triage[t.server_index] = job_to_serve
         server_busy[t.server_index] = True
         t.completion[t.server_index] = t.current + GetServiceTriage()
-        area.wait_time[
-            job_to_serve.get_codice() - 1] += t.current - job_to_serve.get_arrival_temp()
-        area.jobs_complete_color[job_to_serve.get_codice() - 1] += 1
+
+    if job_completed:
+        area.wait_time[job_completed.get_codice() - 1] += t.current - job_completed.get_arrival_temp()
+        area.jobs_complete_color[job_completed.get_codice() - 1] += 1
     return job_completed
 
 
 def triage_data(area, t, queue_triage):
+    logger.info("STATS FOR TRIAGE")
     logger.info(f"Average interarrival time: {t.last / sum(area.jobs_completed):.2f}")
     logger.info(f"Average wait: {area.node / sum(area.jobs_completed):.2f}")
     logger.info(f"Average delay: {area.queue / sum(area.jobs_completed):.2f}")
     logger.info(f"Average service time: {sum(area.service) / sum(area.jobs_completed):.2f}")
-    logger.info(f"Average number_triage in the node: {area.node / t.current:.2f}")
-    logger.info(f"Average number_triage in the queue: {area.queue / t.current:.2f}")
+    logger.info(f"Average number_triage in the node: {area.node / t.last:.2f}")
+    logger.info(f"Average number_triage in the queue: {area.queue / t.last:.2f}")
 
     for i in range(NUMERO_DI_SERVER_TRIAGE):
-        utilization = area.service[i] / t.current if t.current > 0 else 0
+        utilization = area.service[i] / t.last if t.last > 0 else 0
         avg_service_time = area.service[i] / area.jobs_completed[i] if area.jobs_completed[
                                                                            i] > 0 else 0
 

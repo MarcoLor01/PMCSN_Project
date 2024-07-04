@@ -36,7 +36,7 @@ def GetServiceQueue():
     # * --------------------------------------------
     # */
     selectStream(4)
-    return Uniform(SX_SERVIZIO_TRIAGE, DX_SERVIZIO_TRIAGE)
+    return Uniform(20, 40)
 #j=0
 #max=0
 #min=100
@@ -53,7 +53,7 @@ def testDistribution():
         if temp < min:
             min = temp
         j= j+temp
-        #print("Time: ",temp)
+        print("Time: ",temp)
     print("Res:", j / 1000000)
     print("Max:", max)
     print("Min:", min)

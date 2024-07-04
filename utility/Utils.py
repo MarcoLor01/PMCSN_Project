@@ -1,4 +1,6 @@
-from utility.Parameters import INFINITY
+from utility.Parameters import INFINITY, STOP
+
+
 def minimum(a, c):
     # ------------------------------
     # * return the smaller of a, b
@@ -34,6 +36,11 @@ def add_job_to_queue(job, queue):
     else:
         print(f"Index {index} is out of range for list_of_queues")
 
+def check_arrival(arrival: int):
+    if arrival >= STOP:
+        return INFINITY
+    else:
+        return arrival
 
 class Track:
     def __init__(self, num_serv, num_queue):
@@ -54,3 +61,6 @@ class Time:
         self.current = -1  # current time
         self.next = -1  # next (most imminent) event time
         self.last = -1  # last arrival time
+
+
+

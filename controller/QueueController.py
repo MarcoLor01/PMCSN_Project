@@ -5,6 +5,10 @@ from model.Job import *
 from utility.ArrivalService import *
 import logging
 
+# Configurazione del logger
+logging.basicConfig(level=logging.INFO, format='%(message)s')
+logger = logging.getLogger(__name__)
+
 queueRed_q = []
 queueOrange_q = []
 queueBlue_q = []
@@ -22,20 +26,14 @@ servers_busy_queue = [False] * 5  # track busy/free status of servers
 
 
 def pass_to_queue(job: Job, queue_, t):
-    #global number_queue
-    #number_queue += 1
+
     if job.get_codice() == 1:
         queue_[job.get_codice() - 1].append(job)
     else:
         queue_[job.get_codice() + 1].append(job)
+
     arrival_queue(t_queue, servers_busy_queue, queue_)
     t_queue.arrival = t.current
-
-
-def printt():
-    for i in queue:
-        print("Lunghezza coda: ", len(i))
-
 
 def init_queue():
     t_queue.arrival = -1
@@ -65,6 +63,10 @@ def pre_process_queue(area, number, server_busy):
 
 
 def arrival_queue(t, servers_busy, queue_q):
+    if t.arrival > STOP:
+        t.last = t.current
+        t.arrival = INFINITY
+
     for i in range(NUMERO_DI_SERVER_QUEUE):
         if not servers_busy[i]:  # check if server is free
             job_to_serve = get_next_job_to_serve(queue_q)
@@ -86,7 +88,35 @@ def completion_queue(t, server_busy, queue_q, area):
         server_busy[t.server_index] = True
         server_queue[t.server_index] = job_to_serve
         t.completion[t.server_index] = t.current + GetServiceQueue()
-        area.wait_time[
-            job_to_serve.get_codice() - 1] += t.current - job_to_serve.get_arrival_temp()
-        area.jobs_complete_color[job_to_serve.get_codice() - 1] += 1
+
+    if job_completed:
+        if job_completed.get_codice() == 1:
+            area.wait_time[job_completed.get_codice() - 1] += t.current - job_completed.get_arrival_temp()
+            area.jobs_complete_color[job_completed.get_codice() - 1] += 1
+        else:
+            area.wait_time[job_completed.get_codice() + 1] += t.current - job_completed.get_arrival_temp()
+            area.jobs_complete_color[job_completed.get_codice() + 1] += 1
+
     return job_completed
+
+
+def queue_data(area, t, queue_first):
+    logger.info("STATS FOR INITIAL QUEUE")
+    logger.info(f"Average interarrival time: {t.last / sum(area.jobs_completed):.2f}")
+    logger.info(f"Average wait: {area.node / sum(area.jobs_completed):.2f}")
+    logger.info(f"Average delay: {area.queue / sum(area.jobs_completed):.2f}")
+    logger.info(f"Average service time: {sum(area.service) / sum(area.jobs_completed):.2f}")
+    logger.info(f"Average number_triage in the node: {area.node / t.last:.2f}")
+    logger.info(f"Average number_triage in the queue: {area.queue / t.last:.2f}")
+
+    for i in range(NUMERO_DI_SERVER_QUEUE):
+        utilization = area.service[i] / t.last if t.last > 0 else 0
+        avg_service_time = area.service[i] / area.jobs_completed[i] if area.jobs_completed[
+                                                                           i] > 0 else 0
+        logger.info(f"Utilization of server {i + 1}: {utilization:.2f}")
+        logger.info(f"Average service time of server {i + 1}: {avg_service_time:.2f}")
+    for i in range(len(queue_first)):
+        if area.jobs_complete_color[i] != 0:
+            # logger.info(f"Waiting time for color {i + 1}: {area.wait_time[i]}")
+            # logger.info(f"job for color {i + 1}: {area.jobs_complete_color[i]}")
+            logger.info(f"Attesa media {i + 1}: {area.wait_time[i] / area.jobs_complete_color[i]}")
