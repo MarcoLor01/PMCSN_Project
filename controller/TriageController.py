@@ -37,7 +37,7 @@ def assign_triage_code():
     # Probabilità cumulative corrispondenti
     cumulative_probabilities = [0.063, 0.259, 0.642, 0.948, 1.0]  # Probabilità cumulative
 
-    rand_num = random()
+    rand_num = random()  # GIUSTO???
     # Determinare il codice basato sul numero casuale
     for code, cum_prob in zip(codes, cumulative_probabilities):
         if rand_num < cum_prob:
@@ -58,7 +58,6 @@ def init_triage(arrival_temp):
 
 
 def pre_process_triage(t, area, number, server_busy):
-
     t.min_completion, t.server_index = min_time_completion(
         t.completion + [INFINITY])  # include INFINITY for queue check
     t.next = minimum(t.arrival, t.min_completion)  # next event time

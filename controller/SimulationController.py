@@ -13,14 +13,13 @@ plantSeeds(DEFAULT)
 
 
 def simulation():
-    #Importiamo singolarmente o un vettore?
-    #global number_Ecg, index_Ecg, queue_Ecg
-    #global number_Emocromo, index_Emocromo, queue_Emocromo
-    #global number_Tac, index_Tac, queue_Tac
-    #global number_Radiografia, index_Radiografia, queue_Radiografia
-    #global number_altriEsami, index_altriEsami, queue_altriEsami
+    # Importiamo singolarmente o un vettore?
+    # global number_Ecg, index_Ecg, queue_Ecg
+    # global number_Emocromo, index_Emocromo, queue_Emocromo
+    # global number_Tac, index_Tac, queue_Tac
+    # global number_Radiografia, index_Radiografia, queue_Radiografia
+    # global number_altriEsami, index_altriEsami, queue_altriEsami
     global number_Analisi, index_Analisi, queue_Analisi
-
 
     global arrivalTemp
     global number_triage, index_triage, queue_triage
@@ -49,13 +48,13 @@ def simulation():
             job_completed.set_time_triage(t_triage.min_completion - job_completed.get_arrival_temp())
             number_queue += 1
             pass_to_queue(job_completed, queue, t_triage)
-            t_queue.arrival = check_arrival(t_triage.arrival)  #DA RIVEDERE
+            t_queue.arrival = check_arrival(t_triage.arrival)  # DA RIVEDERE
 
         if t_queue.current == t_queue.min_completion:  # process a completion
             index_queue += 1
             number_queue -= 1
             job_to_analisi = completion_queue(t_queue, servers_busy_queue, queue, area_queue)
-            #contAnalisi = pass_to_analisi()
+            contAnalisi = pass_to_analisi()
 
     triage_data(area_triage, t_triage, queue_triage)
     queue_data(area_queue, t_queue, queue)
