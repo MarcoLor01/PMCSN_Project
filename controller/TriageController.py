@@ -37,7 +37,7 @@ def assign_triage_code():
     # Probabilità cumulative corrispondenti
     cumulative_probabilities = [0.063, 0.259, 0.642, 0.948, 1.0]  # Probabilità cumulative
 
-    rand_num = random()  # GIUSTO???
+    rand_num = random() 
     # Determinare il codice basato sul numero casuale
     for code, cum_prob in zip(codes, cumulative_probabilities):
         if rand_num < cum_prob:

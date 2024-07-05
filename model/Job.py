@@ -6,9 +6,16 @@ class Job:
         self.__analisi_enum = None
         self.__interrotto = None
         self.__triage_time = None
+        self.__lista_analisi = None
 
     def initialize_job(self, istante_arrivo: int):
         self.__istante_arrivo = istante_arrivo
+
+    def set_lista_analisi(self, lista_analisi: list):
+        self.__lista_analisi = lista_analisi
+
+    def get_lista_analisi(self):
+        return self.__lista_analisi
 
     def triage(self, codice: int):
         self.__codice = codice

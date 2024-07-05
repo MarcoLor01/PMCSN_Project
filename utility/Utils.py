@@ -14,8 +14,6 @@ def minimum(a, c):
 
 def min_time_completion(completion_times):
     """Returns the minimum completion time and the index of the server"""
-    #for i in range(len(completion_times)):
-    #    print(i, completion_times[i])
     min_completion_time = min(completion_times)
     min_index = completion_times.index(min_completion_time)
     return min_completion_time, min_index
