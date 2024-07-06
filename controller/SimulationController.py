@@ -28,12 +28,12 @@ def simulation():
     arrivalTemp = arrivalTemp + GetArrival()
     init_triage(arrivalTemp)
     init_queue()
+    init_analisi(t_Analisi, area_Analisi, queue_Analisi)
 
-    #init_analisi(t_Analisi, area_Analisi, queue_Analisi)
     while (t_triage.arrival < STOP) or (number_triage > 0) or (number_queue > 0):
         pre_process_triage(t_triage, area_triage, number_triage, servers_busy_triage)
         pre_process_queue(area_queue, number_queue, servers_busy_queue)
-        #pre_process_analisi(t_Analisi, area_Analisi, number_Analisi, servers_busy_Analisi)
+        pre_process_analisi(t_Analisi, area_Analisi, number_Analisi, servers_busy_Analisi)
 
         if t_triage.current == t_triage.arrival and t_triage.current < INFINITY:  # process an arrival
             number_triage += 1
@@ -57,9 +57,10 @@ def simulation():
             index_queue += 1
             number_queue -= 1
             job_to_analisi = completion_queue(t_queue, servers_busy_queue, queue, area_queue)
-            #lista_analisi = get_analisi()
-            #job_to_analisi.set_lista_analisi(lista_analisi)
-            ##pass_to_analisi(job_to_analisi)
+            lista_analisi = get_analisi()
+            job_to_analisi.set_lista_analisi(lista_analisi)
+            pass_to_analisi(job_to_analisi, queue_Analisi, t_queue)
+
     triage_data(area_triage, t_triage, queue_triage)
     queue_data(area_queue, t_queue, queue)
 

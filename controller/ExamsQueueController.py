@@ -106,49 +106,55 @@ def determina_numero_analisi():
 
 # Counter({3: 499813, 2: 299887, 4: 99999, 1: 89192, 5: 10092, 6: 1017})
 
+# Frequenze desiderate per ciascun tipo di analisi per ogni numero di analisi
+frequenze_assolute = {
+    1: {'ECG': 0, 'Ecografia': 0, 'Emocromo': 40, 'Radiografia': 30, 'Tac': 0, 'Altro': 30},
+    2: {'ECG': 0, 'Ecografia': 20, 'Emocromo': 90, 'Radiografia': 42, 'Tac': 6, 'Altro': 42},
+    3: {'ECG': 90, 'Ecografia': 20, 'Emocromo': 99, 'Radiografia': 40, 'Tac': 6, 'Altro': 45},
+    4: {'ECG': 105, 'Ecografia': 32, 'Emocromo': 112, 'Radiografia': 63, 'Tac': 20, 'Altro': 68},
+    5: {'ECG': 110, 'Ecografia': 50, 'Emocromo': 130, 'Radiografia': 80, 'Tac': 25, 'Altro': 105},
+    6: {'ECG': 120, 'Ecografia': 57, 'Emocromo': 143, 'Radiografia': 95, 'Tac': 30, 'Altro': 155}
+}
 
-def scegli_analisi(analisi_disponibili):
-    analisi_probabilita = {
-        'Tac': 0.06,
-        'Ecografia': 0.20,
-        'Altro': 0.50,
-        'Radiografia': 0.50,
-        'ECG': 9,
-        'Emocromo': 9
-    }
 
-    totale_probabilita = sum(analisi_probabilita[nome] for nome in analisi_disponibili)
+def scegli_analisi(numero_analisi):
+    analisi_disponibili = ['ECG', 'Ecografia', 'Emocromo', 'Radiografia', 'Tac', 'Altro']
+    analisi_frequenze = frequenze_assolute[numero_analisi]
+
+    totale_frequenze = sum(analisi_frequenze.values())
     cumulative_prob = {}
     cumulative = 0
     for nome in analisi_disponibili:
-        cumulative += analisi_probabilita[nome] / totale_probabilita
+        cumulative += analisi_frequenze[nome] / totale_frequenze
         cumulative_prob[nome] = cumulative
 
-    rand_num = random()
-
-    for nome in analisi_disponibili:
-        if rand_num < cumulative_prob[nome]:
-            analisi_disponibili.remove(nome)
-            return nome
-
-    return None
-
-def esegui_analisi(numero_analisi):
-    analisi_disponibili = ['ECG', 'Ecografia', 'Emocromo', 'Radiografia', 'Tac', 'Altro']
     analisi_da_fare = []
-
     for _ in range(numero_analisi):
-        if not analisi_disponibili:
-            break
-        analisi = scegli_analisi(analisi_disponibili)
-        if analisi:
-            analisi_da_fare.append(analisi)
+        rand_num = random()
+        for nome in analisi_disponibili:
+            if rand_num < cumulative_prob[nome]:
+                analisi_da_fare.append(nome)
+                break
 
     return analisi_da_fare
 
-def test_esegui_analisi(num_samples=100000):
+
+def esegui_analisi(numero_analisi):
+    return scegli_analisi(numero_analisi)
+
+
+def test_esegui_analisi(num_samples, numero_analisi):
     results = []
     for _ in range(num_samples):
-        analisi = esegui_analisi(2)
+        analisi = esegui_analisi(numero_analisi)
         results.extend(analisi)
     counter = Counter(results)
+    print(counter)
+
+
+def test_vari_numeri_analisi():
+    for numero_analisi in range(1, 7):
+        print(f"Numero di analisi: {numero_analisi}")
+        test_esegui_analisi(100000, numero_analisi)
+        print("--------------------")
+
