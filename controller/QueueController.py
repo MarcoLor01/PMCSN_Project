@@ -72,7 +72,6 @@ def arrival_queue(t, servers_busy, queue_q):
         if not servers_busy[i]:  # check if server is free
             job_to_serve = get_next_job_to_serve(queue_q)
             if job_to_serve:
-                print("sono qui")
                 servers_busy[i] = True
                 server_queue[i] = job_to_serve
                 t_queue.completion[i] = t_queue.current + GetServiceQueue()
