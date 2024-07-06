@@ -58,6 +58,7 @@ def init_triage(arrival_temp):
 
 
 def pre_process_triage(t, area, number, server_busy):
+
     t.min_completion, t.server_index = min_time_completion(
         t.completion + [INFINITY])  # include INFINITY for queue check
     t.next = minimum(t.arrival, t.min_completion)  # next event time
@@ -66,8 +67,9 @@ def pre_process_triage(t, area, number, server_busy):
         area.node += (t.next - t.current) * number
         area.queue += (t.next - t.current) * (number - sum(server_busy))
         for i in range(NUMERO_DI_SERVER_TRIAGE):
-            area.service[i] = area.service[i] + (t.next - t.current) * \
-                              server_busy[i]
+            if server_busy[i]:
+                area.service[i] = area.service[i] + (t.next - t.current)
+
     t.current = t.next  # advance the clock
 
 
@@ -101,6 +103,10 @@ def completion_triage(t, server_busy, queue_t, area):
     if job_completed:
         area.wait_time[job_completed.get_codice() - 1] += t.current - job_completed.get_arrival_temp()
         area.jobs_complete_color[job_completed.get_codice() - 1] += 1
+
+    if t.arrival > STOP:
+        t.last = t.current
+
     return job_completed
 
 
@@ -114,6 +120,8 @@ def triage_data(area, t, queue_triage):
     logger.info(f"Average number_triage in the queue: {area.queue / t.last:.2f}")
 
     for i in range(NUMERO_DI_SERVER_TRIAGE):
+
+
         utilization = area.service[i] / t.last if t.last > 0 else 0
         avg_service_time = area.service[i] / area.jobs_completed[i] if area.jobs_completed[
                                                                            i] > 0 else 0

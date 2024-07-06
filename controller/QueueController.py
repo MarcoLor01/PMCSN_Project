@@ -60,6 +60,7 @@ def pre_process_queue(area, number, server_busy):
         for i in range(NUMERO_DI_SERVER_QUEUE):
             area.service[i] = area.service[i] + (t_queue.next - t_queue.current) * \
                               server_busy[i]
+
     t_queue.current = t_queue.next  # advance the clock
 
 
@@ -79,7 +80,6 @@ def arrival_queue(t, servers_busy, queue_q):
 
 
 def completion_queue(t, server_busy, queue_q, area):
-
     server_busy[t.server_index] = False
     t.completion[t.server_index] = INFINITY
     area.jobs_completed[t.server_index] += 1
@@ -98,6 +98,9 @@ def completion_queue(t, server_busy, queue_q, area):
         else:
             area.wait_time[job_completed.get_codice() + 1] += t.current - job_completed.get_arrival_temp()
             area.jobs_complete_color[job_completed.get_codice() + 1] += 1
+
+    if t.arrival > STOP:
+        t.last = t.current
 
     return job_completed
 

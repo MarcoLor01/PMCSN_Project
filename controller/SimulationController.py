@@ -30,7 +30,7 @@ def simulation():
     init_queue()
     init_analisi(t_Analisi, area_Analisi, queue_Analisi)
 
-    while (t_triage.arrival < STOP) or (number_triage > 0) or (number_queue > 0):
+    while (t_triage.arrival < STOP) or (number_triage > 0) or (number_queue > 0) or (max(number_Analisi) > 0):
         pre_process_triage(t_triage, area_triage, number_triage, servers_busy_triage)
         pre_process_queue(area_queue, number_queue, servers_busy_queue)
         pre_process_analisi(t_Analisi, area_Analisi, number_Analisi, servers_busy_Analisi)
@@ -53,13 +53,21 @@ def simulation():
             pass_to_queue(job_completed, queue, t_triage)
             t_queue.arrival = check_arrival(t_triage.arrival)  # DA RIVEDERE
 
-        if t_queue.current == t_queue.min_completion:  # process a completion
+        if t_queue.current == t_queue.min_completion and number_queue > 0:  # process a completion
             index_queue += 1
             number_queue -= 1
             job_to_analisi = completion_queue(t_queue, servers_busy_queue, queue, area_queue)
             lista_analisi = get_analisi()
             job_to_analisi.set_lista_analisi(lista_analisi)
-            pass_to_analisi(job_to_analisi, queue_Analisi, t_queue)
+            analisi = pass_to_analisi(job_to_analisi, queue_Analisi, t_queue)
+            number_Analisi[analisi] += 1
+
+        for i in range(len(t_Analisi)):
+            if t_Analisi[i].current == t_Analisi[i].min_completion and number_Analisi[i] > 0:  # process a completion
+                index_Analisi[i] += 1
+                number_Analisi[i] -= 1
+                job_to_out = completion_analisi(t_Analisi[i], servers_busy_Analisi[i], queue_Analisi[i],
+                                                area_Analisi[i], i)
 
     triage_data(area_triage, t_triage, queue_triage)
     queue_data(area_queue, t_queue, queue)

@@ -37,6 +37,15 @@ def GetServiceQueue():
     # */
     selectStream(4)
     return Uniform(20, 40)
+
+
+def GetServiceAnalisi(analisi):
+    # --------------------------------------------
+    # * generate the next service time with rate 1/2
+    # * --------------------------------------------
+    # */
+    selectStream(10)
+    return Uniform(2, 5)
 #j=0
 #max=0
 #min=100

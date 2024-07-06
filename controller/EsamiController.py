@@ -48,51 +48,51 @@ def assign_esami():
             return esame
 
 
-def init_esame(t: Time, area: Track, queue: list, num):
-    t.arrival = -1
-    t.current = START  # set the clock
+def init_esame(t1: Time, area1: Track, queue1: list, num):
+    t1.arrival = -1
+    t1.current = START  # set the clock
     for i in range(num):
-        t.completion[i] = INFINITY + 1  # the first event can't be a completion */
-        area.service[i] = 0
-    for i in range(len(queue)):
-        area.wait_time[i] = 0
-        area.jobs_complete_color[i] = 0
-    area.node = 0
-    area.queue = 0
+        t1.completion[i] = INFINITY + 1  # the first event can't be a completion */
+        area1.service[i] = 0
+    for i in range(len(queue1)):
+        area1.wait_time[i] = 0
+        area1.jobs_complete_color[i] = 0
+    area1.node = 0
+    area1.queue1 = 0
 
 
-def init_analisi(t, area, queue):
-    for i in range(len(t)):
-        init_esame(t[i], area[i], queue[i], NUMERO_SERVER_ANALISI[i])
+def init_analisi(t1, area1, queue1):
+    for i in range(len(t1)):
+        init_esame(t1[i], area1[i], queue1[i], NUMERO_SERVER_ANALISI[i])
 
 
-def pre_process_esame(t, area, number, server_busy, num):
-    t.min_completion, t.server_index = min_time_completion(
-        t.completion + [INFINITY])  # include INFINITY for queue check
-    t.next = minimum(t.min_completion, t.arrival)  # next event time
-    if number > 0:
-        area.node += (t.next - t.current) * number
-        area.queue += (t.next - t.current) * (number - sum(server_busy))
-        for i in range(num):
-            area.service[i] = area.service[i] + (t.next - t.current) * \
-                              server_busy[i]
-    t.current = t.next  # advance the clock
+def pre_process_esame(t3, area3, number3, server_busy3, num3):
+    t3.min_completion, t3.server_index = min_time_completion(
+        t3.completion + [INFINITY])  # include INFINITY for queue check
+    t3.next = minimum(t3.min_completion, t3.arrival)  # next event time
+    if number3 > 0:
+        area3.node += (t3.next - t3.current) * number3
+        area3.queue += (t3.next - t3.current) * (number3 - sum(server_busy3))
+        for i in range(num3):
+            area3.service[i] = area3.service[i] + (t3.next - t3.current) * \
+                              server_busy3[i]
+    t3.current = t3.next  # advance the clock
 
 
-def pre_process_analisi(t, area, number, server_busy):
-    for i in range(len(t)):
-        pre_process_esame(t[i], area[i], number[i], server_busy[i], NUMERO_SERVER_ANALISI[i])
+def pre_process_analisi(t2, area2, number2, server_busy2):
+    for i in range(len(t2)):
+        pre_process_esame(t2[i], area2[i], number2[i], server_busy2[i], NUMERO_SERVER_ANALISI[i])
 
 
-def pass_to_analisi(job: Job, queue_, t):
+def pass_to_analisi(job: Job, queue1, t1):
     analisi_da_fare = job.get_lista_analisi()[0]
     analisi, posto_analisi = switch(analisi_da_fare, job)
-    arrival_analisi(t_Analisi[analisi], servers_busy_Analisi[analisi], queue_[analisi], analisi)
-    t_Analisi[analisi].arrival = t.current
-
+    arrival_analisi(t_Analisi[analisi], servers_busy_Analisi[analisi], queue1[analisi], analisi)
+    t_Analisi[analisi].arrival = t1.current
+    t_Analisi[analisi].arrival = check_arrival(t1.arrival)  # DA RIVEDERE
+    return analisi
 
 def switch(analisi_da_fare, job: Job):
-    queue_posto = -1
     num_coda = -1
 
     if job.get_codice() == 1:
@@ -115,31 +115,46 @@ def switch(analisi_da_fare, job: Job):
     else:
         logger.error("Analisi non presente")
 
-    if queue_posto != -1 and num_coda != -1:
-        queue_Analisi[num_coda][queue_posto].append(job)
-    else:
-        logger.error("Errore nell'aggiornamento")
-
+    queue_Analisi[num_coda][queue_posto].append(job)
     return num_coda, queue_posto
 
 
-def arrival_analisi(t, servers_busy, queue_q, analisi):
+def arrival_analisi(t, servers_busy, queue_1, analisi):
     if t.arrival > STOP:
         t.last = t.current
         t.arrival = INFINITY
 
     for i in range(NUMERO_SERVER_ANALISI[analisi]):
         if not servers_busy[i]:  # check if server is free
-            job_to_serve = get_next_job_to_serve(queue_q)
+            job_to_serve = get_next_job_to_serve(queue_1)
             if job_to_serve:
                 servers_busy[i] = True
                 server_Analisi[analisi][i] = job_to_serve
-                t.completion[i] = t.current + GetServiceQueue()
+                t.completion[i] = t.current + GetServiceAnalisi(analisi)
                 break
 
 
+def completion_analisi(t1, server_busy1, queue_q1, area1, index1):
+    server_busy1[t1.server_index] = False
+    t1.completion[t1.server_index] = INFINITY
+    area1.jobs_completed[t1.server_index] += 1
+    job_completed = server_Analisi[index1][t1.server_index]
+    job_to_serve = get_next_job_to_serve(queue_q1)
 
+    if job_to_serve:
+        server_busy1[t1.server_index] = True
+        server_Analisi[index1][t1.server_index] = job_to_serve
+        t1.completion[t1.server_index] = t1.current + GetServiceAnalisi(index1)
 
+    if job_completed:
+        if job_completed.get_codice() == 1:
+            area1.wait_time[job_completed.get_codice() - 1] += t1.current - job_completed.get_arrival_temp()
+            area1.jobs_complete_color[job_completed.get_codice() - 1] += 1
+        else:
+            area1.wait_time[1] += t1.current - job_completed.get_arrival_temp()
+            area1.jobs_complete_color[1] += 1
+
+    return job_completed
 
 ##    print(analisi_da_fare, " Codice: ", job.get_codice())
 ##    for i in range(len(queue_Analisi)):
