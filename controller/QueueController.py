@@ -36,6 +36,17 @@ def pass_to_queue(job: Job, queue_, t):
     t_queue.arrival = t.current
 
 
+def return_to_queue(job: Job, queue_, t):
+
+    if job.get_codice() == 1:
+        queue_[1].append(job)
+    else:
+        queue_[2].append(job)
+
+    arrival_queue(t_queue, servers_busy_queue, queue_)
+    t_queue.arrival = t.current
+
+
 def init_queue():
     t_queue.arrival = -1
     t_queue.current = START  # set the clock
@@ -93,14 +104,19 @@ def completion_queue(t, server_busy, queue_q, area):
 
 
     if job_completed:
-        #print(t.current, job_completed.get_arrival_temp(), job_completed.get_time_triage())
 
-        if job_completed.get_codice() == 1:
-            area.wait_time[job_completed.get_codice() - 1] += t.current - (job_completed.get_arrival_temp())
+        if job_completed.get_uscita():
+            if job_completed.get_codice() == 1:
+                area.wait_time[1] += t.current - job_completed.get_arrival_temp()
+                area.jobs_complete_color[1] += 1
+            else:
+                area.wait_time[2] += t.current - job_completed.get_arrival_temp()
+                area.jobs_complete_color[2] += 1
+        elif job_completed.get_codice() == 1:
+            area.wait_time[job_completed.get_codice() - 1] += t.current - job_completed.get_arrival_temp()
             area.jobs_complete_color[job_completed.get_codice() - 1] += 1
         else:
-            area.wait_time[job_completed.get_codice() + 1] += t.current - (job_completed.get_arrival_temp() + job_completed.get_time_triage())
-
+            area.wait_time[job_completed.get_codice() + 1] += t.current - job_completed.get_arrival_temp()
             area.jobs_complete_color[job_completed.get_codice() + 1] += 1
 
     if t.arrival > STOP:

@@ -16,6 +16,8 @@ def min_time_completion(completion_times):
     """Returns the minimum completion time and the index of the server"""
     min_completion_time = min(completion_times)
     min_index = completion_times.index(min_completion_time)
+    if min_index == len(completion_times) - 1:
+        min_index = 0
     return min_completion_time, min_index
 
 

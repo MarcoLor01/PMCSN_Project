@@ -67,15 +67,18 @@ def init_analisi(t1, area1, queue1):
 
 
 def pre_process_esame(t3, area3, number3, server_busy3, num3):
+    #print("tlen: ", len(t3.completion))
     t3.min_completion, t3.server_index = min_time_completion(
         t3.completion + [INFINITY])  # include INFINITY for queue check
+
     t3.next = minimum(t3.min_completion, t3.arrival)  # next event time
+
     if number3 > 0:
         area3.node += (t3.next - t3.current) * number3
         area3.queue += (t3.next - t3.current) * (number3 - sum(server_busy3))
         for i in range(num3):
             area3.service[i] = area3.service[i] + (t3.next - t3.current) * \
-                              server_busy3[i]
+                               server_busy3[i]
     t3.current = t3.next  # advance the clock
 
 
@@ -91,6 +94,7 @@ def pass_to_analisi(job: Job, queue1, t1):
     t_Analisi[analisi].arrival = t1.current
     t_Analisi[analisi].arrival = check_arrival(t1.arrival)  # DA RIVEDERE
     return analisi
+
 
 def switch(analisi_da_fare, job: Job):
     num_coda = -1
@@ -140,7 +144,6 @@ def completion_analisi(t1, server_busy1, queue_q1, area1, index1):
     area1.jobs_completed[t1.server_index] += 1
     job_completed = server_Analisi[index1][t1.server_index]
     job_to_serve = get_next_job_to_serve(queue_q1)
-
     if job_to_serve:
         server_busy1[t1.server_index] = True
         server_Analisi[index1][t1.server_index] = job_to_serve
@@ -165,27 +168,27 @@ def analisi_data(area_a, t_a, queue_a):
     for i in range(len(area_a)):
         single_analisi_data(area_a[i], t_a[i], queue_a[i], i)
 
-##    print(analisi_da_fare, " Codice: ", job.get_codice())
-##    for i in range(len(queue_Analisi)):
-##        for j in range(len(queue_Analisi[i])):
-##            print("CODE: i=",i,"j=",j,"   ", len(queue_Analisi[i][j]))
-#
 
 #TODO
-#1 - Aggiungere alla classe job gli esami da fare e gli esami fatti
-#2 - Creare una funzione che terminato l'esame mette il job in coda per l'esame con coda minore
-#3 - Iniziare a ragionare sui preemptive, come li gestiamo?
-
+#1 - Smistamento analisi(scheduling su analisi da fare basato su popolazione in coda)
+#2 - Gestione probabilità post analisi
+#3 - Preemptive
+#4 - Tutti i tempi di servizio
+#5 - Scheduling adattivo per migliorare se aspetti troppo ti mando
+#6 - Sensibilizzazione della popolazione
+#7 - Ridurre il numero di analisi
 
 def single_analisi_data(area, t, queue_first, index):
     logger.info(f"STATS FOR ANALISI: {index:.2f}")
 
-    print("T.LAST: ", t.last, "COMPLETED: ", area.jobs_completed, "AREANODE: ", area.node, "AREAQUEUE: ", area.queue, "AREA SERVICE: ", area.service)
+    #print("T.LAST: ", t.last, "COMPLETED: ", area.jobs_completed, "AREANODE: ", area.node, "AREAQUEUE: ", area.queue, "AREA SERVICE: ", area.service)
 
-    logger.info(f"Average interarrival time: {t.last / sum(area.jobs_completed) if sum(area.jobs_completed) > 0 else 0 :.2f}")
+    logger.info(
+        f"Average interarrival time: {t.last / sum(area.jobs_completed) if sum(area.jobs_completed) > 0 else 0 :.2f}")
     logger.info(f"Average wait: {area.node / sum(area.jobs_completed) if sum(area.jobs_completed) > 0 else 0 :.2f}")
     logger.info(f"Average delay: {area.queue / sum(area.jobs_completed) if sum(area.jobs_completed) > 0 else 0 :.2f}")
-    logger.info(f"Average service time: {sum(area.service) / sum(area.jobs_completed) if sum(area.jobs_completed) > 0 else 0 :.2f}")
+    logger.info(
+        f"Average service time: {sum(area.service) / sum(area.jobs_completed) if sum(area.jobs_completed) > 0 else 0 :.2f}")
     logger.info(f"Average number_triage in the node: {area.node / t.last:.8f}")
     logger.info(f"Average number_triage in the queue: {area.queue / t.last:.8f}")
 

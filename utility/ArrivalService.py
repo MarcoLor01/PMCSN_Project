@@ -36,7 +36,7 @@ def GetServiceQueue():
     # * --------------------------------------------
     # */
     selectStream(4)
-    return Uniform(20, 40)
+    return Uniform(10, 15)
 
 
 def GetServiceAnalisi(analisi):

@@ -8,6 +8,13 @@ class Job:
         self.__triage_time = None
         self.__lista_analisi = None
         self.__queue_time = None
+        self.__uscita = False
+
+    def get_uscita(self):
+        return self.__uscita
+
+    def set_uscita(self, uscita: bool):
+        self.__uscita = uscita
 
     def set_queue_time(self, queue_time: int):
         self.__queue_time = queue_time
@@ -15,8 +22,11 @@ class Job:
     def get_queue_time(self):
         return self.__queue_time
 
-    def set_lista_analisi(self, lista_analisi: list):
-        self.__lista_analisi = lista_analisi
+    def set_lista_analisi(self, lista_analisi):
+        if not isinstance(lista_analisi, list):
+            self.__lista_analisi = [lista_analisi]
+        else:
+            self.__lista_analisi = lista_analisi
 
     def get_lista_analisi(self):
         return self.__lista_analisi
