@@ -34,9 +34,10 @@ def simulation():
         pre_process_triage(t_triage, area_triage, number_triage, servers_busy_triage)
         pre_process_queue(area_queue, number_queue, servers_busy_queue)
         pre_process_analisi(t_Analisi, area_Analisi, number_Analisi, servers_busy_Analisi)
-
+        #print(t_triage.current, t_Analisi[0].current, t_queue.current)
         if t_triage.current == t_triage.arrival and t_triage.current < INFINITY:  # process an arrival
             number_triage += 1
+            #print("A:", arrivalTemp)
             job = Job(arrivalTemp)
             job.triage(give_code())
             arrivalTemp = arrivalTemp + GetArrival()
@@ -49,6 +50,7 @@ def simulation():
             number_triage -= 1
             job_completed = completion_triage(t_triage, servers_busy_triage, queue_triage, area_triage)
             job_completed.set_time_triage(t_triage.min_completion - job_completed.get_arrival_temp())
+            job_completed.set_arrival_temp(t_queue.current)
             number_queue += 1
             pass_to_queue(job_completed, queue, t_triage)
             t_queue.arrival = check_arrival(t_triage.arrival)  # DA RIVEDERE
@@ -57,9 +59,12 @@ def simulation():
             index_queue += 1
             number_queue -= 1
             job_to_analisi = completion_queue(t_queue, servers_busy_queue, queue, area_queue)
+            job_to_analisi.set_queue_time(
+                t_queue.min_completion - (job_to_analisi.get_arrival_temp() + job_to_analisi.get_time_triage()))
             lista_analisi = get_analisi()
             job_to_analisi.set_lista_analisi(lista_analisi)
             analisi = pass_to_analisi(job_to_analisi, queue_Analisi, t_queue)
+            job_to_analisi.set_arrival_temp(t_Analisi[analisi].current)
             number_Analisi[analisi] += 1
 
         for i in range(len(t_Analisi)):
@@ -71,6 +76,11 @@ def simulation():
 
     triage_data(area_triage, t_triage, queue_triage)
     queue_data(area_queue, t_queue, queue)
+    analisi_data(area_Analisi, t_Analisi, queue_Analisi)
+
+    print("Analisi: ", sum(index_Analisi))
+    print("Queue  : ", index_queue)
+    print("Triage : ", index_triage)
 
 
 def main():

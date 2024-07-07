@@ -91,12 +91,16 @@ def completion_queue(t, server_busy, queue_q, area):
         server_queue[t.server_index] = job_to_serve
         t.completion[t.server_index] = t.current + GetServiceQueue()
 
+
     if job_completed:
+        #print(t.current, job_completed.get_arrival_temp(), job_completed.get_time_triage())
+
         if job_completed.get_codice() == 1:
-            area.wait_time[job_completed.get_codice() - 1] += t.current - job_completed.get_arrival_temp()
+            area.wait_time[job_completed.get_codice() - 1] += t.current - (job_completed.get_arrival_temp())
             area.jobs_complete_color[job_completed.get_codice() - 1] += 1
         else:
-            area.wait_time[job_completed.get_codice() + 1] += t.current - job_completed.get_arrival_temp()
+            area.wait_time[job_completed.get_codice() + 1] += t.current - (job_completed.get_arrival_temp() + job_completed.get_time_triage())
+
             area.jobs_complete_color[job_completed.get_codice() + 1] += 1
 
     if t.arrival > STOP:
@@ -111,8 +115,8 @@ def queue_data(area, t, queue_first):
     logger.info(f"Average wait: {area.node / sum(area.jobs_completed):.2f}")
     logger.info(f"Average delay: {area.queue / sum(area.jobs_completed):.2f}")
     logger.info(f"Average service time: {sum(area.service) / sum(area.jobs_completed):.2f}")
-    logger.info(f"Average number_triage in the node: {area.node / t.last:.2f}")
-    logger.info(f"Average number_triage in the queue: {area.queue / t.last:.2f}")
+    logger.info(f"Average number_queue in the node: {area.node / t.last:.2f}")
+    logger.info(f"Average number_queue in the queue: {area.queue / t.last:.2f}")
 
     for i in range(NUMERO_DI_SERVER_QUEUE):
         utilization = area.service[i] / t.last if t.last > 0 else 0

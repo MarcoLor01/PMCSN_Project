@@ -7,9 +7,13 @@ class Job:
         self.__interrotto = None
         self.__triage_time = None
         self.__lista_analisi = None
+        self.__queue_time = None
 
-    def initialize_job(self, istante_arrivo: int):
-        self.__istante_arrivo = istante_arrivo
+    def set_queue_time(self, queue_time: int):
+        self.__queue_time = queue_time
+
+    def get_queue_time(self):
+        return self.__queue_time
 
     def set_lista_analisi(self, lista_analisi: list):
         self.__lista_analisi = lista_analisi
@@ -22,6 +26,9 @@ class Job:
 
     def set_time_triage(self, t: int):
         self.__triage_time = t
+
+    def set_arrival_temp(self, t: int):
+        self.__istante_arrivo = t
 
     def get_codice(self):
         return self.__codice
