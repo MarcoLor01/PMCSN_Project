@@ -9,6 +9,13 @@ class Job:
         self.__lista_analisi = None
         self.__queue_time = None
         self.__uscita = False
+        self.__tempo_rimanente = 0
+
+    def set_tempo_rimanente(self, tempo_rimanente):
+        self.__tempo_rimanente = tempo_rimanente
+
+    def get_tempo_rimanente(self):
+        return self.__tempo_rimanente
 
     def get_uscita(self):
         return self.__uscita

@@ -27,7 +27,6 @@ servers_busy_queue = [False] * NUMERO_DI_SERVER_QUEUE  # track busy/free status 
 
 
 def pass_to_queue(job: Job, queue_, t):
-
     if job.get_codice() == 1:
         queue_[job.get_codice() - 1].append(job)
     else:
@@ -37,7 +36,6 @@ def pass_to_queue(job: Job, queue_, t):
 
 
 def return_to_queue(job: Job, queue_, t):
-
     if job.get_codice() == 1:
         queue_[1].append(job)
     else:
@@ -61,7 +59,6 @@ def init_queue():
 
 
 def pre_process_queue(area, number, server_busy):
-
     t_queue.min_completion, t_queue.server_index = min_time_completion(
         t_queue.completion + [INFINITY])  # include INFINITY for queue check
     t_queue.next = minimum(t_queue.min_completion, t_queue.arrival)  # next event time
@@ -76,18 +73,57 @@ def pre_process_queue(area, number, server_busy):
 
 
 def arrival_queue(t, servers_busy, queue_q):
+    full = True
+    index = -1
+    codice = -1
+
     if t_queue.arrival > STOP:
         t_queue.last = t_queue.current
         t_queue.arrival = INFINITY
 
     for i in range(NUMERO_DI_SERVER_QUEUE):
         if not servers_busy[i]:  # check if server is free
+            full = False
             job_to_serve = get_next_job_to_serve(queue_q)
             if job_to_serve:
                 servers_busy[i] = True
                 server_queue[i] = job_to_serve
-                t_queue.completion[i] = t_queue.current + GetServiceQueue()
+                #t_queue.completion[i] = t_queue.current + GetServiceQueue()
+                if job_to_serve.get_tempo_rimanente() == 0:
+                    t_queue.completion[i] = t.current + GetServiceQueue()
+                else:
+                    t_queue.completion[i] = t.current + job_to_serve.get_tempo_rimanente()
                 break
+
+    # preemption
+    if full and (len(queue_q[0]) + len(queue_q[1])) > 0:
+        job_to_serve = get_next_job_to_serve(queue_q)
+        for i in range(NUMERO_DI_SERVER_QUEUE):
+            temp = server_queue[i].get_codice()
+            if temp > codice:
+                codice = temp
+                index = i
+
+        job_interrotto = server_queue[index]
+        if job_interrotto.get_codice() == 1 or t.completion[index] == t.current:
+            coda_preemptive(queue_q, job_to_serve)
+        else:
+            job_interrotto.set_tempo_rimanente(t.completion[index] - t.current)
+            server_queue[index] = job_to_serve
+            coda_preemptive(queue_q, job_interrotto)
+            t_queue.completion[index] = t_queue.current + GetServiceQueue()
+
+
+
+def coda_preemptive(queue_q, job):
+    if job.get_uscita() and job.get_codice() == 1:
+        queue_q[job.get_codice()].insert(0, job)
+    elif job.get_codice() == 1:
+        queue_q[job.get_codice() - 1].insert(0, job)
+    elif job.get_uscita():
+        queue_q[2].insert(0, job)
+    else:
+        queue_q[job.get_codice() + 1].insert(0, job)
 
 
 def completion_queue(t, server_busy, queue_q, area):
@@ -100,8 +136,10 @@ def completion_queue(t, server_busy, queue_q, area):
     if job_to_serve:
         server_busy[t.server_index] = True
         server_queue[t.server_index] = job_to_serve
-        t.completion[t.server_index] = t.current + GetServiceQueue()
-
+        if job_to_serve.get_tempo_rimanente() == 0:
+            t.completion[t.server_index] = t.current + GetServiceQueue()
+        else:
+            t.completion[t.server_index] = t.current + job_to_serve.get_tempo_rimanente()
 
     if job_completed:
 

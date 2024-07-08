@@ -91,7 +91,7 @@ def simulation():
 
     triage_data(area_triage, t_triage, queue_triage)
     queue_data(area_queue, t_queue, queue)
-    #analisi_data(area_Analisi, t_Analisi, queue_Analisi)
+    analisi_data(area_Analisi, t_Analisi, queue_Analisi)
 
     print("Analisi: ", sum(index_Analisi))
     print("Queue  : ", index_queue)

@@ -32,6 +32,8 @@ server_Analisi = [server_Ecg, server_Emocromo, server_Tac, server_Radiografia, s
 
 NUMERO_SERVER_ANALISI = [NUMERO_DI_SERVER_ECG, NUMERO_DI_SERVER_EMOCROMO, NUMERO_DI_SERVER_TAC,
                          NUMERO_DI_SERVER_RADIOGRAFIA, NUMERO_DI_SERVER_ECOGRAFIA, NUMERO_DI_SERVER_ALTRI_ESAMI]
+MEDIA_DI_SERVIZIO_ANALISI = [MEDIA_DI_SERVIZIO_ECG, MEDIA_DI_SERVIZIO_EMOCROMO, MEDIA_DI_SERVIZIO_TAC,
+                         MEDIA_DI_SERVIZIO_RADIOGRAFIA, MEDIA_DI_SERVIZIO_ECOGRAFIA, MEDIA_DI_SERVIZIO_ALTRI_ESAMI]
 
 
 def assign_esami():
@@ -134,7 +136,7 @@ def arrival_analisi(t, servers_busy, queue_1, analisi):
             if job_to_serve:
                 servers_busy[i] = True
                 server_Analisi[analisi][i] = job_to_serve
-                t.completion[i] = t.current + GetServiceAnalisi(analisi)
+                t.completion[i] = t.current + GetServiceAnalisi(analisi, MEDIA_DI_SERVIZIO_ANALISI[analisi])
                 break
 
 
@@ -147,7 +149,7 @@ def completion_analisi(t1, server_busy1, queue_q1, area1, index1):
     if job_to_serve:
         server_busy1[t1.server_index] = True
         server_Analisi[index1][t1.server_index] = job_to_serve
-        t1.completion[t1.server_index] = t1.current + GetServiceAnalisi(index1)
+        t1.completion[t1.server_index] = t1.current + GetServiceAnalisi(index1, MEDIA_DI_SERVIZIO_ANALISI[index1])
 
     if job_completed:
         if job_completed.get_codice() == 1:
@@ -174,6 +176,7 @@ def analisi_data(area_a, t_a, queue_a):
 #2 - Gestione probabilità post analisi
 #3 - Preemptive
 #4 - Tutti i tempi di servizio
+#
 #5 - Scheduling adattivo per migliorare se aspetti troppo ti mando
 #6 - Sensibilizzazione della popolazione
 #7 - Ridurre il numero di analisi
