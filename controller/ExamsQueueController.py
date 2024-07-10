@@ -116,11 +116,11 @@ frequenze_assolute = {
     6: {'ECG': 120, 'Ecografia': 57, 'Emocromo': 143, 'Radiografia': 95, 'Tac': 30, 'Altro': 155}
 }
 
+analisi_disponibili = ['ECG', 'Emocromo', 'Tac', 'Radiografia', 'Ecografia', 'Altro']
+
 
 def scegli_analisi(numero_analisi):
-    analisi_disponibili = ['ECG', 'Ecografia', 'Emocromo', 'Radiografia', 'Tac', 'Altro']
     analisi_frequenze = frequenze_assolute[numero_analisi]
-
     totale_frequenze = sum(analisi_frequenze.values())
     cumulative_prob = {}
     cumulative = 0

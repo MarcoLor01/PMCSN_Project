@@ -46,7 +46,7 @@ def return_to_queue(job: Job, queue_, t):
 
 
 def init_queue():
-    t_queue.arrival = -1
+    t_queue.arrival = START
     t_queue.current = START  # set the clock
     for i in range(NUMERO_DI_SERVER_QUEUE):
         t_queue.completion[i] = INFINITY + 1  # the first event can't be a completion */

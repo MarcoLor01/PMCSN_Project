@@ -4,6 +4,7 @@ from utility.Parameters import *
 from model.Job import *
 from utility.ArrivalService import *
 import logging
+from controller.ExamsQueueController import analisi_disponibili
 from controller.EcgController import number_Ecg, index_Ecg, queue_Ecg, area_Ecg, t_Ecg, servers_busy_Ecg, server_Ecg
 from controller.EmocromoController import number_Emocromo, index_Emocromo, queue_Emocromo, area_Emocromo, t_Emocromo, \
     servers_busy_Emocromo, server_Emocromo
@@ -33,7 +34,7 @@ server_Analisi = [server_Ecg, server_Emocromo, server_Tac, server_Radiografia, s
 NUMERO_SERVER_ANALISI = [NUMERO_DI_SERVER_ECG, NUMERO_DI_SERVER_EMOCROMO, NUMERO_DI_SERVER_TAC,
                          NUMERO_DI_SERVER_RADIOGRAFIA, NUMERO_DI_SERVER_ECOGRAFIA, NUMERO_DI_SERVER_ALTRI_ESAMI]
 MEDIA_DI_SERVIZIO_ANALISI = [MEDIA_DI_SERVIZIO_ECG, MEDIA_DI_SERVIZIO_EMOCROMO, MEDIA_DI_SERVIZIO_TAC,
-                         MEDIA_DI_SERVIZIO_RADIOGRAFIA, MEDIA_DI_SERVIZIO_ECOGRAFIA, MEDIA_DI_SERVIZIO_ALTRI_ESAMI]
+                             MEDIA_DI_SERVIZIO_RADIOGRAFIA, MEDIA_DI_SERVIZIO_ECOGRAFIA, MEDIA_DI_SERVIZIO_ALTRI_ESAMI]
 
 
 def assign_esami():
@@ -90,12 +91,45 @@ def pre_process_analisi(t2, area2, number2, server_busy2):
 
 
 def pass_to_analisi(job: Job, queue1, t1):
-    analisi_da_fare = job.get_lista_analisi()[0]
+    analisi = get_next_analisi(job)
+    analisi_da_fare = job.get_lista_analisi()[analisi]
+    #analisi_da_fare = job.get_lista_analisi()[0]
+
+
     analisi, posto_analisi = switch(analisi_da_fare, job)
     arrival_analisi(t_Analisi[analisi], servers_busy_Analisi[analisi], queue1[analisi], analisi)
     t_Analisi[analisi].arrival = t1.current
     t_Analisi[analisi].arrival = check_arrival(t1.arrival)  # DA RIVEDERE
     return analisi
+#    
+#    analisi_tipo, posto_analisi = switch(analisi_da_fare, job)
+#    arrival_analisi(t_Analisi[analisi_tipo], servers_busy_Analisi[analisi_tipo], queue1[analisi_tipo], analisi_tipo)
+#    t_Analisi[analisi_tipo].arrival = t1.current
+#    t_Analisi[analisi_tipo].arrival = check_arrival(t1.arrival)
+#    job.get_lista_analisi().pop(analisi)
+    #return analisi_tipo
+
+
+def get_next_analisi(job):
+    lista_analisi = job.get_lista_analisi()
+    best_metric = 0
+    best_index = 0
+
+    for i in range(len(lista_analisi)):
+        metric = calculate_metrics_on_analisi(lista_analisi[i])
+        if metric > best_metric:
+            best_metric = metric
+            best_index = i
+
+    return best_index
+
+
+def calculate_metrics_on_analisi(analisi):
+    i = analisi_disponibili.index(analisi)
+    if NUMERO_SERVER_ANALISI[i] - number_Analisi[i] > 0:
+        return INFINITY
+    else:
+        return NUMERO_SERVER_ANALISI[i] / (number_Analisi[i] * MEDIA_DI_SERVIZIO_ANALISI[i])
 
 
 def switch(analisi_da_fare, job: Job):
@@ -171,10 +205,20 @@ def analisi_data(area_a, t_a, queue_a):
         single_analisi_data(area_a[i], t_a[i], queue_a[i], i)
 
 
+def probabilita_analisi(volte_analisi):
+    selectStream(25)
+    if volte_analisi <= 1:
+        return True
+    elif volte_analisi == 2:
+        return random() <= 0.2  # 20% di probabilità
+    elif volte_analisi == 3:
+        return random() <= 0.05  # 5% di probabilità
+    else:
+        return random() <= 0.01  # 1% di probabilità
+
+
 #TODO
-#1 - Smistamento analisi(scheduling su analisi da fare basato su popolazione in coda)
 #2 - Gestione probabilità post analisi
-#3 - Preemptive
 #4 - Tutti i tempi di servizio
 #
 #5 - Scheduling adattivo per migliorare se aspetti troppo ti mando

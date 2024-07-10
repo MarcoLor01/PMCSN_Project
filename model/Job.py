@@ -8,11 +8,15 @@ class Job:
         self.__triage_time = None
         self.__lista_analisi = None
         self.__queue_time = None
-        self.__uscita = False
+        self.__uscita = 0
         self.__tempo_rimanente = 0
+        self.__id = istante_arrivo
 
     def set_tempo_rimanente(self, tempo_rimanente):
         self.__tempo_rimanente = tempo_rimanente
+
+    def get_id(self):
+        return self.__id
 
     def get_tempo_rimanente(self):
         return self.__tempo_rimanente
@@ -20,8 +24,8 @@ class Job:
     def get_uscita(self):
         return self.__uscita
 
-    def set_uscita(self, uscita: bool):
-        self.__uscita = uscita
+    def set_uscita(self):
+        self.__uscita += 1
 
     def set_queue_time(self, queue_time: int):
         self.__queue_time = queue_time
