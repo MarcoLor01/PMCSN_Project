@@ -74,7 +74,9 @@ def pre_process_esame(t3, area3, number3, server_busy3, num3):
     t3.min_completion, t3.server_index = min_time_completion(
         t3.completion + [INFINITY])  # include INFINITY for queue check
 
+    #t3.next = t3.min_completion
     t3.next = minimum(t3.min_completion, t3.arrival)  # next event time
+    print ("MIN Comp: ", t3.min_completion, "COMP:", t3.completion, "T_NEXT:",t3.next)
 
     if number3 > 0:
         area3.node += (t3.next - t3.current) * number3
@@ -93,30 +95,34 @@ def pre_process_analisi(t2, area2, number2, server_busy2):
 def pass_to_analisi(job: Job, queue1, t1):
     analisi = get_next_analisi(job)
     analisi_da_fare = job.get_lista_analisi()[analisi]
-    #analisi_da_fare = job.get_lista_analisi()[0]
-
-
+    #print("analisi_da_fare:", analisi_da_fare)
     analisi, posto_analisi = switch(analisi_da_fare, job)
-    arrival_analisi(t_Analisi[analisi], servers_busy_Analisi[analisi], queue1[analisi], analisi)
+    #print("posto_analisi:", analisi,"posto", posto_analisi)
     t_Analisi[analisi].arrival = t1.current
-    t_Analisi[analisi].arrival = check_arrival(t1.arrival)  # DA RIVEDERE
+    t_Analisi[analisi].arrival = check_arrival(t1.arrival + STOP)  # DA RIVEDERE
+    arrival_analisi(t_Analisi[analisi], servers_busy_Analisi[analisi], queue1[analisi], analisi)
     return analisi
-#    
+
+
+#
 #    analisi_tipo, posto_analisi = switch(analisi_da_fare, job)
 #    arrival_analisi(t_Analisi[analisi_tipo], servers_busy_Analisi[analisi_tipo], queue1[analisi_tipo], analisi_tipo)
 #    t_Analisi[analisi_tipo].arrival = t1.current
 #    t_Analisi[analisi_tipo].arrival = check_arrival(t1.arrival)
 #    job.get_lista_analisi().pop(analisi)
-    #return analisi_tipo
+#return analisi_tipo
 
 
 def get_next_analisi(job):
     lista_analisi = job.get_lista_analisi()
+
+    #print("Dio", lista_analisi)
     best_metric = 0
-    best_index = 0
+    best_index = -1
 
     for i in range(len(lista_analisi)):
         metric = calculate_metrics_on_analisi(lista_analisi[i])
+        #print ("M",metric,"B",best_metric)
         if metric > best_metric:
             best_metric = metric
             best_index = i
@@ -170,6 +176,8 @@ def arrival_analisi(t, servers_busy, queue_1, analisi):
             if job_to_serve:
                 servers_busy[i] = True
                 server_Analisi[analisi][i] = job_to_serve
+                #print("Assegnazione server del job", job_to_serve.get_id())
+                #print("Analisi", analisi)
                 t.completion[i] = t.current + GetServiceAnalisi(analisi, MEDIA_DI_SERVIZIO_ANALISI[analisi])
                 break
 
@@ -212,13 +220,17 @@ def probabilita_analisi(volte_analisi):
     elif volte_analisi == 2:
         return random() <= 0.2  # 20% di probabilità
     elif volte_analisi == 3:
-        return random() <= 0.05  # 5% di probabilità
+        return False  # 5% di probabilità
     else:
-        return random() <= 0.01  # 1% di probabilità
+        return False  # 1% di probabilità
 
 
 #TODO
-#2 - Gestione probabilità post analisi
+#0 - IMOSTARE I COMPLETAMENTI IN BASE ALL'ISTANTE CORRETTO PROXEVENT - IN ARRIVAL QUEUE
+#1 - Cambiare gestione tempo intera simulazione allineando tutti gli eventi, capire prima l'evento ed eseguirlo non piu
+# in modo sequenziale. Minimo tra i min completition
+#2 - Problema con job che si perdono
+#3 - Errore di remove sulle analisi, causato da inserimento in coda sbagliata?
 #4 - Tutti i tempi di servizio
 #
 #5 - Scheduling adattivo per migliorare se aspetti troppo ti mando

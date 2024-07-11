@@ -63,3 +63,38 @@ class Time:
         self.current = -1  # current time
         self.next = -1  # next (most imminent) event time
         self.last = -1  # last arrival time
+
+
+def next_event(current_triage: int, current_queue: int, t_analisi: list):
+    prox_evento = INFINITY
+    for i in range(len(t_analisi)):
+        if t_analisi[i].current > 0:
+            prox_evento = min(prox_evento, t_analisi[i].current)
+            print("Analisi num",i, t_analisi[i].current, "Min: ", prox_evento)
+
+    if current_queue > 0:
+        prox_evento = min(prox_evento, current_queue)
+        print("Queue", current_queue, "Min: ", prox_evento)
+
+    if current_triage > 0:
+        prox_evento = min(prox_evento, current_triage)
+        print("Triage", current_triage, "Min: ", prox_evento)
+
+
+    print("Evento minimo", prox_evento)
+
+    return prox_evento
+
+
+def next_eventt(t_triage: Time, t_queue: Time, t_analisi: list):
+    prox_evento = INFINITY
+    for i in range(len(t_analisi)):
+        if t_analisi[i].current > 0:
+            prox_evento = min(prox_evento, t_analisi[i].current)
+    if t_queue.min_completion > 0:
+        prox_evento = min(prox_evento, t_queue.min_completion)
+    if t_queue.min_completion > 0:
+        prox_evento = min(prox_evento, t_queue.min_completion)
+    print(prox_evento)
+
+    return prox_evento
