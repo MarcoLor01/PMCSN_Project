@@ -28,11 +28,13 @@ def simulation():
         pre_process_queue(area_queue, number_queue, servers_busy_queue)
         pre_process_analisi(t_Analisi, area_Analisi, number_Analisi, servers_busy_Analisi)
         prox_operazione = next_event(t_triage.current, t_queue.current, t_Analisi)
-
+        #print ("tempi queue: ", t_queue.completion)
         switch(prox_operazione, t_triage, t_queue, t_Analisi)
 
         #print("num: ", number_triage, number_queue, number_Analisi[0], number_Analisi[1], number_Analisi[2], number_Analisi[3], number_Analisi[4], number_Analisi[5])
-
+        #print("")
+        #print("")
+        #print("")
     triage_data(area_triage, t_triage, queue_triage)
     queue_data(area_queue, t_queue, queue)
     analisi_data(area_Analisi, t_Analisi, queue_Analisi)
@@ -44,31 +46,6 @@ def simulation():
     print("Job che hanno fatto esami 2 volte: ", analisi_2_volte)
     print("Job che hanno fatto esami 3 volte: ", analisi_3_volte)
     print("Job che hanno fatto esami 4 volte: ", analisi_piu_3)
-
-
-def switch(prox_operazione, t_triage: Time, t_queue: Time, t_analisi: list):
-    #print("prox", prox_operazione)
-    t_triage.current = prox_operazione
-    t_queue.current = prox_operazione
-    for i in range(len(t_analisi)):
-        t_analisi[i].current = prox_operazione
-
-    if prox_operazione == t_triage.arrival:
-        #print("1")
-        processa_arrivo_triage()
-    elif prox_operazione == t_triage.min_completion:
-        #print("2")
-        processa_completamento_triage()
-    elif prox_operazione == t_queue.min_completion:
-        #print("3")
-        processa_completamento_queue()
-    else:
-        for i in range(len(t_analisi)):
-
-            if prox_operazione == t_analisi[i].min_completion:
-                #print("4")
-                processa_completamento_analisi(i)
-                break
 
 
 def processa_arrivo_triage():
@@ -88,12 +65,12 @@ def processa_completamento_triage():
     number_triage -= 1
 
     job_completed = completion_triage(t_triage, servers_busy_triage, queue_triage, area_triage)
-    job_completed.set_time_triage(t_triage.min_completion - job_completed.get_arrival_temp())
+    job_completed.set_time_triage(t_triage.current - job_completed.get_arrival_temp())
     # print("Pre:", job_completed.get_arrival_temp())
-    job_completed.set_arrival_temp(t_queue.current)
+    job_completed.set_arrival_temp(t_triage.current)
     # print("Post:", job_completed.get_arrival_temp())
     number_queue += 1
-    pass_to_queue(job_completed, queue, t_triage)
+    pass_to_queue(job_completed, queue)
     t_queue.arrival = check_arrival(t_triage.arrival + STOP)  # DA RIVEDERE
     # print("T_Queue_a:", t_queue.arrival)
 
@@ -142,8 +119,7 @@ def processa_completamento_analisi(index_analisi):
         # print("l.a: ", lista_analisi)
         # print("a.d: ", analisi_disponibili[index_analisi])
 
-        # lista_analisi.remove(analisi_disponibili[index_analisi])
-        lista_analisi.pop(0)
+        lista_analisi.remove(analisi_disponibili[index_analisi])
 
         # print(job_to_out.get_id(), lista_analisi)
         job_to_out.set_lista_analisi(lista_analisi)
@@ -165,6 +141,26 @@ def processa_completamento_analisi(index_analisi):
 
 def main():
     simulation()
+
+
+def switch(prox_operazione, t_triage: Time, t_queue: Time, t_analisi: list):
+    t_triage.current = prox_operazione
+    t_queue.current = prox_operazione
+    for i in range(len(t_analisi)):
+        t_analisi[i].current = prox_operazione
+
+    if prox_operazione == t_triage.arrival:
+        processa_arrivo_triage()
+    elif prox_operazione == t_triage.min_completion:
+        processa_completamento_triage()
+    elif prox_operazione == t_queue.min_completion:
+        processa_completamento_queue()
+    else:
+        for i in range(len(t_analisi)):
+
+            if prox_operazione == t_analisi[i].min_completion:
+                processa_completamento_analisi(i)
+                break
 
 
 if __name__ == "__main__":

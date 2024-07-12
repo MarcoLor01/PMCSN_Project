@@ -70,21 +70,21 @@ def init_analisi(t1, area1, queue1):
 
 
 def pre_process_esame(t3, area3, number3, server_busy3, num3):
-    #print("tlen: ", len(t3.completion))
     t3.min_completion, t3.server_index = min_time_completion(
         t3.completion + [INFINITY])  # include INFINITY for queue check
 
-    #t3.next = t3.min_completion
-    t3.next = minimum(t3.min_completion, t3.arrival)  # next event time
+    t3.next = t3.min_completion  # next event time
 
-    if number3 > 0:
+    if number3 > 0 and t3.last != t3.next:
         area3.node += (t3.next - t3.current) * number3
         area3.queue += (t3.next - t3.current) * (number3 - sum(server_busy3))
         for i in range(num3):
-            area3.service[i] = area3.service[i] + (t3.next - t3.current) * \
-                               server_busy3[i]
-    t3.current = t3.next  # advance the clock
+            if server_busy3[i]:
+                area3.service[i] = area3.service[i] + (t3.next - t3.current)
 
+    t3.current = t3.next  # advance the clock
+    if t3.next < INFINITY:
+        t3.last = t3.next
 
 def pre_process_analisi(t2, area2, number2, server_busy2):
     for i in range(len(t2)):
@@ -97,7 +97,6 @@ def pass_to_analisi(job: Job, queue1, t1):
     #print("analisi_da_fare:", analisi_da_fare)
     analisi, posto_analisi = switch(analisi_da_fare, job)
     #print("posto_analisi:", analisi,"posto", posto_analisi)0
-    t_Analisi[analisi].current = t1.last  #PROBLEMA QUI
     t_Analisi[analisi].arrival = t1.last
     t_Analisi[analisi].arrival = check_arrival(t1.arrival + STOP)  # DA RIVEDERE
     arrival_analisi(t_Analisi[analisi], servers_busy_Analisi[analisi], queue1[analisi], analisi)
@@ -166,9 +165,6 @@ def switch(analisi_da_fare, job: Job):
 
 
 def arrival_analisi(t, servers_busy, queue_1, analisi):
-    if t.arrival > STOP:
-        t.last = t.current
-        t.arrival = INFINITY
 
     for i in range(NUMERO_SERVER_ANALISI[analisi]):
         if not servers_busy[i]:  # check if server is free
@@ -202,7 +198,6 @@ def completion_analisi(t1, server_busy1, queue_q1, area1, index1):
             area1.jobs_complete_color[1] += 1
     else:
         logger.error("Job set to null")
-    t1.last = t1.current
 
     return job_completed
 
@@ -226,16 +221,12 @@ def probabilita_analisi(volte_analisi):
 
 
 #TODO
-#0 - IMOSTARE I COMPLETAMENTI IN BASE ALL'ISTANTE CORRETTO PROXEVENT - IN ARRIVAL QUEUE
-#1 - Cambiare gestione tempo intera simulazione allineando tutti gli eventi, capire prima l'evento ed eseguirlo non piu
-# in modo sequenziale. Minimo tra i min completition
-#2 - Problema con job che si perdono
-#3 - Errore di remove sulle analisi, causato da inserimento in coda sbagliata?
-#4 - Tutti i tempi di servizio
+#1 - Tutti i tempi di servizio
+#2 - Sistemare statistiche
 #
-#5 - Scheduling adattivo per migliorare se aspetti troppo ti mando
-#6 - Sensibilizzazione della popolazione
-#7 - Ridurre il numero di analisi
+#3 - Scheduling adattivo per migliorare se aspetti troppo ti mando
+#4 - Sensibilizzazione della popolazione
+#5 - Ridurre il numero di analisi
 
 def single_analisi_data(area, t, queue_first, index):
     logger.info(f"STATS FOR ANALISI: {index:.2f}")
