@@ -74,7 +74,6 @@ def pre_process_triage(t, area, number, server_busy):
 
 
 def arrival_triage(t, servers_busy, queue_t):
-    print("T.ARRIVAL PRE: ", t.arrival, "STOP: ", STOP)
     if t.arrival > STOP:
         t.last = t.current
         t.arrival = INFINITY
@@ -87,7 +86,6 @@ def arrival_triage(t, servers_busy, queue_t):
                 servers_busy[i] = True
                 t.completion[i] = t.current + GetServiceTriage()
                 break
-    print("T.ARRIVAL POST: ", t.arrival, "STOP: ", STOP)
 
 
 def completion_triage(t, server_busy, queue_t, area):
@@ -101,6 +99,8 @@ def completion_triage(t, server_busy, queue_t, area):
         server_triage[t.server_index] = job_to_serve
         server_busy[t.server_index] = True
         t.completion[t.server_index] = t.current + GetServiceTriage()
+    else:
+        server_triage[t.server_index] = None
 
     if job_completed:
         area.wait_time[job_completed.get_codice() - 1] += t.current - job_completed.get_arrival_temp()

@@ -31,6 +31,7 @@ def pass_to_queue(job: Job, queue_, t):
         queue_[job.get_codice() - 1].append(job)
     else:
         queue_[job.get_codice() + 1].append(job)
+
     arrival_queue(t_queue, servers_busy_queue, queue_)
     t_queue.arrival = t.current
 
@@ -46,6 +47,7 @@ def return_to_queue(job: Job, queue_, t):
 
 
 def init_queue():
+
     t_queue.arrival = START
     t_queue.current = START  # set the clock
     for i in range(NUMERO_DI_SERVER_QUEUE):
@@ -59,6 +61,7 @@ def init_queue():
 
 
 def pre_process_queue(area, number, server_busy):
+
     t_queue.min_completion, t_queue.server_index = min_time_completion(
         t_queue.completion + [INFINITY])  # include INFINITY for queue check
     t_queue.next = minimum(t_queue.min_completion, t_queue.arrival)  # next event time
@@ -88,7 +91,6 @@ def arrival_queue(t, servers_busy, queue_q):
             if job_to_serve:
                 servers_busy[i] = True
                 server_queue[i] = job_to_serve
-                #t_queue.completion[i] = t_queue.current + GetServiceQueue()
                 if job_to_serve.get_tempo_rimanente() == 0:
                     t_queue.completion[i] = t.current + GetServiceQueue()
                 else:

@@ -70,18 +70,20 @@ def next_event(current_triage: int, current_queue: int, t_analisi: list):
     for i in range(len(t_analisi)):
         if t_analisi[i].current > 0:
             prox_evento = min(prox_evento, t_analisi[i].current)
-            print("Analisi num",i, t_analisi[i].current, "Min: ", prox_evento)
+            #print("Analisi num", i, t_analisi[i].current, "Min: ", prox_evento)
 
     if current_queue > 0:
         prox_evento = min(prox_evento, current_queue)
-        print("Queue", current_queue, "Min: ", prox_evento)
+        #print("Queue", current_queue, "Min: ", prox_evento)
 
     if current_triage > 0:
         prox_evento = min(prox_evento, current_triage)
-        print("Triage", current_triage, "Min: ", prox_evento)
+        #print("Triage", current_triage, "Min: ", prox_evento)
 
+    if prox_evento >= INFINITY:
+        prox_evento = -1
 
-    print("Evento minimo", prox_evento)
+    #print("Evento minimo", prox_evento)
 
     return prox_evento
 

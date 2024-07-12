@@ -52,7 +52,7 @@ def assign_esami():
 
 
 def init_esame(t1: Time, area1: Track, queue1: list, num):
-    t1.arrival = -1
+    t1.arrival = START
     t1.current = START  # set the clock
     for i in range(num):
         t1.completion[i] = INFINITY + 1  # the first event can't be a completion */
@@ -76,7 +76,6 @@ def pre_process_esame(t3, area3, number3, server_busy3, num3):
 
     #t3.next = t3.min_completion
     t3.next = minimum(t3.min_completion, t3.arrival)  # next event time
-    print ("MIN Comp: ", t3.min_completion, "COMP:", t3.completion, "T_NEXT:",t3.next)
 
     if number3 > 0:
         area3.node += (t3.next - t3.current) * number3
@@ -97,9 +96,9 @@ def pass_to_analisi(job: Job, queue1, t1):
     analisi_da_fare = job.get_lista_analisi()[analisi]
     #print("analisi_da_fare:", analisi_da_fare)
     analisi, posto_analisi = switch(analisi_da_fare, job)
-    #print("posto_analisi:", analisi,"posto", posto_analisi)
-    t_Analisi[analisi].current = t1.current
-    t_Analisi[analisi].arrival = t1.current
+    #print("posto_analisi:", analisi,"posto", posto_analisi)0
+    t_Analisi[analisi].current = t1.last  #PROBLEMA QUI
+    t_Analisi[analisi].arrival = t1.last
     t_Analisi[analisi].arrival = check_arrival(t1.arrival + STOP)  # DA RIVEDERE
     arrival_analisi(t_Analisi[analisi], servers_busy_Analisi[analisi], queue1[analisi], analisi)
     return analisi
