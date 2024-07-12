@@ -133,12 +133,15 @@ def simulation():
 
 
 def switch(prox_operazione, t_triage: Time, t_queue: Time, t_analisi: list):
-    print (prox_operazione)
+
+    print(prox_operazione)
     #if prox_operazione > INFINITY:
     #    return
     if prox_operazione == t_triage.arrival:
         processa_arrivo_triage()
         print("triage 1                      fatto")
+        print("POST TRIAGE ARRIVAL:", t_triage.arrival)
+
     elif prox_operazione == t_triage.min_completion:
         processa_completamento_triage()
         print("triage 2                       fatto")
@@ -149,14 +152,14 @@ def switch(prox_operazione, t_triage: Time, t_queue: Time, t_analisi: list):
         print("tq", t_queue.min_completion)
         for i in range(len(t_analisi)):
             print("CURRENT ANALISI: ", t_analisi[i].current, "MIN COMPL: ", t_Analisi[i].min_completion, "COMPLETION: ", t_Analisi[i].completion)
-            if t_analisi[i].current == t_analisi[i].min_completion:
+            if prox_operazione == t_analisi[i].min_completion:
                 processa_completamento_analisi(i)
                 break
 
 
 def processa_arrivo_triage():
     global number_triage, arrivalTemp
-    print("PRE TRIAGE ARRIVAL:", t_triage.arrival)
+    #print("PRE TRIAGE ARRIVAL:", t_triage.arrival)
 
     number_triage += 1
     job = Job(arrivalTemp)
@@ -165,7 +168,6 @@ def processa_arrivo_triage():
     add_job_to_queue(job, queue_triage)
     t_triage.arrival = arrivalTemp
     arrival_triage(t_triage, servers_busy_triage, queue_triage)
-    print("POST TRIAGE ARRIVAL:", t_triage.arrival)
 
 
 def processa_completamento_triage():
@@ -212,7 +214,7 @@ def processa_completamento_queue():
         lista_analisi = get_analisi()
         job_to_analisi.set_lista_analisi(lista_analisi)
         analisi = pass_to_analisi(job_to_analisi, queue_Analisi, t_queue)
-        job_to_analisi.set_arrival_temp(t_Analisi[analisi].current)
+        job_to_analisi.set_arrival_temp(t_queue.current)
         number_Analisi[analisi] += 1
         print("POST QUEUE:", t_queue.completion)
 

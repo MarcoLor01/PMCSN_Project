@@ -98,6 +98,7 @@ def pass_to_analisi(job: Job, queue1, t1):
     #print("analisi_da_fare:", analisi_da_fare)
     analisi, posto_analisi = switch(analisi_da_fare, job)
     #print("posto_analisi:", analisi,"posto", posto_analisi)
+    t_Analisi[analisi].current = t1.current
     t_Analisi[analisi].arrival = t1.current
     t_Analisi[analisi].arrival = check_arrival(t1.arrival + STOP)  # DA RIVEDERE
     arrival_analisi(t_Analisi[analisi], servers_busy_Analisi[analisi], queue1[analisi], analisi)
@@ -184,7 +185,7 @@ def arrival_analisi(t, servers_busy, queue_1, analisi):
 
 def completion_analisi(t1, server_busy1, queue_q1, area1, index1):
     server_busy1[t1.server_index] = False
-    t1.completion[t1.server_index] = INFINITY
+    t1.completion[t1.server_index] = INFINITY+1
     area1.jobs_completed[t1.server_index] += 1
     job_completed = server_Analisi[index1][t1.server_index]
     job_to_serve = get_next_job_to_serve(queue_q1)

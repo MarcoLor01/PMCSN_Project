@@ -114,7 +114,6 @@ def arrival_queue(t, servers_busy, queue_q):
             t_queue.completion[index] = t_queue.current + GetServiceQueue()
 
 
-
 def coda_preemptive(queue_q, job):
     if job.get_uscita() and job.get_codice() == 1:
         queue_q[job.get_codice()].insert(0, job)
