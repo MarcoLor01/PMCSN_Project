@@ -29,6 +29,7 @@ def GetServiceTriage():
     # * --------------------------------------------
     # */
     selectStream(2)
+    #return Exponential(5.5)
     return Uniform(SX_SERVIZIO_TRIAGE, DX_SERVIZIO_TRIAGE)
 
 def GetServiceQueue():

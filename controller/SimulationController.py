@@ -54,6 +54,7 @@ def processa_arrivo_triage():
     job = Job(arrivalTemp)
     job.triage(give_code())
     arrivalTemp = arrivalTemp + GetArrival()
+    # print("Arrivato job colore: ", job.get_codice(), "con codice: ", job.get_id())
     add_job_to_queue(job, queue_triage)
     t_triage.arrival = arrivalTemp
     arrival_triage(t_triage, servers_busy_triage, queue_triage)
@@ -65,7 +66,7 @@ def processa_completamento_triage():
     number_triage -= 1
 
     job_completed = completion_triage(t_triage, servers_busy_triage, queue_triage, area_triage)
-    job_completed.set_time_triage(t_triage.current - job_completed.get_arrival_temp())
+    #job_completed.set_time_triage(t_triage.current - job_completed.get_arrival_temp())
     # print("Pre:", job_completed.get_arrival_temp())
     job_completed.set_arrival_temp(t_triage.current)
     # print("Post:", job_completed.get_arrival_temp())
@@ -82,10 +83,10 @@ def processa_completamento_queue():
     number_queue -= 1
     job_to_analisi = completion_queue(t_queue, servers_busy_queue, queue, area_queue)
 
-    job_to_analisi.set_queue_time(
-        t_queue.min_completion - (job_to_analisi.get_arrival_temp() + job_to_analisi.get_time_triage()))
+    #job_to_analisi.set_queue_time(
+    #    t_queue.min_completion - (job_to_analisi.get_arrival_temp() + job_to_analisi.get_time_triage()))
 
-    if probabilita_analisi(job_to_analisi.get_uscita()):
+    if probability_analisi(job_to_analisi.get_uscita()):
         if job_to_analisi.get_uscita() == 0:
             analisi_1_volta += 1
         elif job_to_analisi.get_uscita() == 1:

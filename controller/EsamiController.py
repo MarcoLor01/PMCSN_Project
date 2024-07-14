@@ -16,7 +16,7 @@ from controller.EcografiaController import number_Ecografia, index_Ecografia, qu
 from controller.AltriEsamiController import number_altriEsami, index_altriEsami, queue_altriEsami, area_altriEsami, \
     t_altriEsami, servers_busy_altriEsami, server_altriEsami
 
-#ECG = 1, EMOCROMO = 2, TAC = 3, RADIOGRAFIA = 4, ECOGRAFIA = 5, ALTRO = 6
+# ECG = 1, EMOCROMO = 2, TAC = 3, RADIOGRAFIA = 4, ECOGRAFIA = 5, ALTRO = 6
 
 # Configurazione del logger
 logging.basicConfig(level=logging.INFO, format='%(message)s')
@@ -86,6 +86,7 @@ def pre_process_esame(t3, area3, number3, server_busy3, num3):
     if t3.next < INFINITY:
         t3.last = t3.next
 
+
 def pre_process_analisi(t2, area2, number2, server_busy2):
     for i in range(len(t2)):
         pre_process_esame(t2[i], area2[i], number2[i], server_busy2[i], NUMERO_SERVER_ANALISI[i])
@@ -94,9 +95,7 @@ def pre_process_analisi(t2, area2, number2, server_busy2):
 def pass_to_analisi(job: Job, queue1, t1):
     analisi = get_next_analisi(job)
     analisi_da_fare = job.get_lista_analisi()[analisi]
-    #print("analisi_da_fare:", analisi_da_fare)
     analisi, posto_analisi = switch(analisi_da_fare, job)
-    #print("posto_analisi:", analisi,"posto", posto_analisi)0
     t_Analisi[analisi].arrival = t1.last
     t_Analisi[analisi].arrival = check_arrival(t1.arrival + STOP)  # DA RIVEDERE
     arrival_analisi(t_Analisi[analisi], servers_busy_Analisi[analisi], queue1[analisi], analisi)
@@ -115,13 +114,11 @@ def pass_to_analisi(job: Job, queue1, t1):
 def get_next_analisi(job):
     lista_analisi = job.get_lista_analisi()
 
-    #print("Dio", lista_analisi)
     best_metric = 0
     best_index = -1
 
     for i in range(len(lista_analisi)):
         metric = calculate_metrics_on_analisi(lista_analisi[i])
-        #print ("M",metric,"B",best_metric)
         if metric > best_metric:
             best_metric = metric
             best_index = i
@@ -165,22 +162,19 @@ def switch(analisi_da_fare, job: Job):
 
 
 def arrival_analisi(t, servers_busy, queue_1, analisi):
-
     for i in range(NUMERO_SERVER_ANALISI[analisi]):
         if not servers_busy[i]:  # check if server is free
             job_to_serve = get_next_job_to_serve(queue_1)
             if job_to_serve:
                 servers_busy[i] = True
                 server_Analisi[analisi][i] = job_to_serve
-                #print("Assegnazione server del job", job_to_serve.get_id())
-                #print("Analisi", analisi)
                 t.completion[i] = t.current + GetServiceAnalisi(analisi, MEDIA_DI_SERVIZIO_ANALISI[analisi])
                 break
 
 
 def completion_analisi(t1, server_busy1, queue_q1, area1, index1):
     server_busy1[t1.server_index] = False
-    t1.completion[t1.server_index] = INFINITY+1
+    t1.completion[t1.server_index] = INFINITY + 1
     area1.jobs_completed[t1.server_index] += 1
     job_completed = server_Analisi[index1][t1.server_index]
     job_to_serve = get_next_job_to_serve(queue_q1)
@@ -189,7 +183,7 @@ def completion_analisi(t1, server_busy1, queue_q1, area1, index1):
         server_Analisi[index1][t1.server_index] = job_to_serve
         t1.completion[t1.server_index] = t1.current + GetServiceAnalisi(index1, MEDIA_DI_SERVIZIO_ANALISI[index1])
 
-    if job_completed:
+    if job_completed is Job or job_completed:
         if job_completed.get_codice() == 1:
             area1.wait_time[job_completed.get_codice() - 1] += (t1.current - job_completed.get_arrival_temp())
             area1.jobs_complete_color[job_completed.get_codice() - 1] += 1
@@ -208,7 +202,7 @@ def analisi_data(area_a, t_a, queue_a):
         single_analisi_data(area_a[i], t_a[i], queue_a[i], i)
 
 
-def probabilita_analisi(volte_analisi):
+def probability_analisi(volte_analisi):
     selectStream(25)
     if volte_analisi <= 1:
         return True

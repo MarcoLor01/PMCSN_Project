@@ -49,9 +49,11 @@ class Track:
         self.node = 0.0  # time integrated number in the node
         self.queue = 0.0  # time integrated number in the queue
         self.service = [0.0] * num_serv  # time integrated number in service
+        self.service_preemptive = 0.0
         self.jobs_completed = [0] * num_serv
-        self.wait_time = [0.0] * num_queue
         self.jobs_complete_color = [0] * num_queue
+        self.wait_time = [0.0] * num_queue
+        self.delay_time = [0.0] * num_queue
 
 
 class Time:

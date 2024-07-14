@@ -23,6 +23,7 @@ area_queue = Track(NUMERO_DI_SERVER_QUEUE, len(queue))
 t_queue = Time(NUMERO_DI_SERVER_QUEUE)
 index_queue = 0
 number_queue = 0.0
+job_att_inter_queue = 0
 servers_busy_queue = [False] * NUMERO_DI_SERVER_QUEUE  # track busy/free status of servers
 
 
@@ -65,10 +66,12 @@ def pre_process_queue(area, number, server_busy):
 
     if number > 0 and t_queue.last != t_queue.next:
         area.node += (t_queue.next - t_queue.current) * number
-        area.queue += (t_queue.next - t_queue.current) * (number - sum(server_busy))
+        area.queue += (t_queue.next - t_queue.current) * (number - sum(server_busy) - job_att_inter_queue)
         for i in range(NUMERO_DI_SERVER_QUEUE):
             if server_busy[i]:
                 area.service[i] = area.service[i] + (t_queue.next - t_queue.current)
+    if job_att_inter_queue:
+        area.service_preemptive = area.service_preemptive + job_att_inter_queue * (t_queue.next - t_queue.current)
 
     t_queue.current = t_queue.next  # advance the clock
     if t_queue.next < INFINITY:
@@ -76,6 +79,7 @@ def pre_process_queue(area, number, server_busy):
 
 
 def arrival_queue(t, servers_busy, queue_q):
+    global job_att_inter_queue
     full = True
     index = -1
     codice = -1
@@ -92,13 +96,17 @@ def arrival_queue(t, servers_busy, queue_q):
                 server_queue[i] = job_to_serve
                 if job_to_serve.get_tempo_rimanente() == 0:
                     t_queue.completion[i] = t.current + GetServiceQueue()
+                    job_to_serve.set_queue_time(t.current)
+                    print("Job con id: ", job_to_serve.get_id(), "queue_time: ", job_to_serve.get_queue_time())
                 else:
+                    job_att_inter_queue = job_att_inter_queue - 1
                     t_queue.completion[i] = t.current + job_to_serve.get_tempo_rimanente()
                 break
 
     # preemption
     if full and (len(queue_q[0]) + len(queue_q[1])) > 0:
         job_to_serve = get_next_job_to_serve(queue_q)
+
         for i in range(NUMERO_DI_SERVER_QUEUE):
             temp = server_queue[i].get_codice()
             if temp > codice:
@@ -111,11 +119,13 @@ def arrival_queue(t, servers_busy, queue_q):
             coda_preemptive(queue_q, job_to_serve)
 
         else:
+            job_to_serve.set_queue_time(t.current)
+            print("Job con id: ", job_to_serve.get_id(), "queue_time: ", job_to_serve.get_queue_time())
+            job_att_inter_queue = job_att_inter_queue + 1
             job_interrotto.set_tempo_rimanente(t.completion[index] - t.current)
             server_queue[index] = job_to_serve
             coda_preemptive(queue_q, job_interrotto)
             t_queue.completion[index] = t_queue.current + GetServiceQueue()
-            #Aggiorno stats?
 
 
 def coda_preemptive(queue_q, job):
@@ -130,6 +140,7 @@ def coda_preemptive(queue_q, job):
 
 
 def completion_queue(t, server_busy, queue_q, area):
+    global job_att_inter_queue
     server_busy[t.server_index] = False
     t.completion[t.server_index] = INFINITY
     area.jobs_completed[t.server_index] += 1
@@ -141,8 +152,10 @@ def completion_queue(t, server_busy, queue_q, area):
         server_queue[t.server_index] = job_to_serve
         if job_to_serve.get_tempo_rimanente() == 0:
             t.completion[t.server_index] = t.current + GetServiceQueue()
+            job_to_serve.set_queue_time(t.current)
         else:
             t.completion[t.server_index] = t.current + job_to_serve.get_tempo_rimanente()
+            job_att_inter_queue = job_att_inter_queue - 1
 
     if job_completed:
 
@@ -150,15 +163,21 @@ def completion_queue(t, server_busy, queue_q, area):
             if job_completed.get_codice() == 1:
                 area.wait_time[1] += t.current - job_completed.get_arrival_temp()
                 area.jobs_complete_color[1] += 1
+                area.delay_time[1] += job_completed.get_queue_time() - job_completed.get_arrival_temp()
             else:
                 area.wait_time[2] += t.current - job_completed.get_arrival_temp()
                 area.jobs_complete_color[2] += 1
+                area.delay_time[2] += job_completed.get_queue_time() - job_completed.get_arrival_temp()
         elif job_completed.get_codice() == 1:
             area.wait_time[job_completed.get_codice() - 1] += t.current - job_completed.get_arrival_temp()
             area.jobs_complete_color[job_completed.get_codice() - 1] += 1
+            area.delay_time[job_completed.get_codice() - 1] += job_completed.get_queue_time() - job_completed.get_arrival_temp()
         else:
             area.wait_time[job_completed.get_codice() + 1] += t.current - job_completed.get_arrival_temp()
             area.jobs_complete_color[job_completed.get_codice() + 1] += 1
+            print(job_completed.get_id())
+            area.delay_time[job_completed.get_codice() + 1] += job_completed.get_queue_time() - job_completed.get_arrival_temp()
+
 
     return job_completed
 
@@ -168,7 +187,9 @@ def queue_data(area, t, queue_first):
     logger.info(f"Average interarrival time: {t.last / sum(area.jobs_completed):.2f}")
     logger.info(f"Average wait: {area.node / sum(area.jobs_completed):.2f}")
     logger.info(f"Average delay: {area.queue / sum(area.jobs_completed):.2f}")
-    logger.info(f"Average service time: {sum(area.service) / sum(area.jobs_completed):.2f}")
+    logger.info(f"Average delay new: {sum(area.delay_time) / sum(area.jobs_completed):.2f}")
+
+    logger.info(f"Average service time: {sum(area.service) + area.service_preemptive / sum(area.jobs_completed):.2f}")
     logger.info(f"Average number_queue in the node: {area.node / t.last:.2f}")
     logger.info(f"Average number_queue in the queue: {area.queue / t.last:.2f}")
 
