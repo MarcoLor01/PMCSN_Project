@@ -2,7 +2,7 @@ import numpy as np
 
 # Costanti per la simulazione del sistema
 START = 0.0  # initial time */
-STOP = 200000.0  # terminal time */
+STOP = 20.0  # terminal time */
 
 #STOP = 20.0
 INFINITY = float(100.0 * STOP)  # must be much larger than STOP  */
@@ -14,7 +14,7 @@ SX_SERVIZIO_TRIAGE = 4
 DX_SERVIZIO_TRIAGE = 7
 
 #Queue
-NUMERO_DI_SERVER_QUEUE = 4
+NUMERO_DI_SERVER_QUEUE = 1
 MEDIA_TASSO_DI_SERVIZIO_QUEUE = 0.8  # Tasso di servizio del server 2
 
 # Esami

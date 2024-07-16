@@ -204,14 +204,15 @@ def analisi_data(area_a, t_a, queue_a):
 
 def probability_analisi(volte_analisi):
     selectStream(25)
-    if volte_analisi <= 1:
-        return True
-    elif volte_analisi == 2:
-        return random() <= 0.2  # 20% di probabilità
-    elif volte_analisi == 3:
-        return False  # 5% di probabilità
-    else:
-        return False  # 1% di probabilità
+    return False
+#    if volte_analisi <= 1:
+#        return True
+#    elif volte_analisi == 2:
+#        return random() <= 0.2  # 20% di probabilità
+#    elif volte_analisi == 3:
+#        return False  # 5% di probabilità
+#    else:
+#        return False  # 1% di probabilità
 
 
 #TODO

@@ -28,6 +28,7 @@ def simulation():
         pre_process_queue(area_queue, number_queue, servers_busy_queue)
         pre_process_analisi(t_Analisi, area_Analisi, number_Analisi, servers_busy_Analisi)
         prox_operazione = next_event(t_triage.current, t_queue.current, t_Analisi)
+        #post_process_queue(area_queue, number_queue, servers_busy_queue, prox_operazione)
         #print ("tempi queue: ", t_queue.completion)
         switch(prox_operazione, t_triage, t_queue, t_Analisi)
 
@@ -35,6 +36,7 @@ def simulation():
         #print("")
         #print("")
         #print("")
+
     triage_data(area_triage, t_triage, queue_triage)
     queue_data(area_queue, t_queue, queue)
     analisi_data(area_Analisi, t_Analisi, queue_Analisi)
@@ -47,14 +49,13 @@ def simulation():
     print("Job che hanno fatto esami 3 volte: ", analisi_3_volte)
     print("Job che hanno fatto esami 4 volte: ", analisi_piu_3)
 
-
 def processa_arrivo_triage():
     global number_triage, arrivalTemp
     number_triage += 1
     job = Job(arrivalTemp)
     job.triage(give_code())
     arrivalTemp = arrivalTemp + GetArrival()
-    # print("Arrivato job colore: ", job.get_codice(), "con codice: ", job.get_id())
+    #print("Arrivato job colore: ", job.get_codice(), "con codice: ", job.get_id())
     add_job_to_queue(job, queue_triage)
     t_triage.arrival = arrivalTemp
     arrival_triage(t_triage, servers_busy_triage, queue_triage)
@@ -66,14 +67,20 @@ def processa_completamento_triage():
     number_triage -= 1
 
     job_completed = completion_triage(t_triage, servers_busy_triage, queue_triage, area_triage)
+    job_completed.set_tempo_rimanente(0)
+
     #job_completed.set_time_triage(t_triage.current - job_completed.get_arrival_temp())
     # print("Pre:", job_completed.get_arrival_temp())
-    job_completed.set_arrival_temp(t_triage.current)
     # print("Post:", job_completed.get_arrival_temp())
     number_queue += 1
     pass_to_queue(job_completed, queue)
     t_queue.arrival = check_arrival(t_triage.arrival + STOP)  # DA RIVEDERE
     # print("T_Queue_a:", t_queue.arrival)
+
+    #print("Arrivato job colore: ", job_completed.get_codice(), "con codice: ", job_completed.get_id(), "all'istante:",t_triage.current)
+    #print("Arrivato nella coda job con id:", job_completed.get_id(), "Arrvial temp:",job_completed.get_arrival_temp(),"t.c", t_triage.current )
+
+
 
 
 def processa_completamento_queue():
@@ -99,7 +106,7 @@ def processa_completamento_queue():
         lista_analisi = get_analisi()
         job_to_analisi.set_lista_analisi(lista_analisi)
         analisi = pass_to_analisi(job_to_analisi, queue_Analisi, t_queue)
-        job_to_analisi.set_arrival_temp(t_queue.current)
+        #job_to_analisi.set_arrival_temp(t_queue.current)
         number_Analisi[analisi] += 1
     #print("UNA VOLTA: ", analisi_1_volta, "2 VOLTE: ", analisi_2_volte, "3 VOLTE: ", analisi_3_volte, "4 VOLTE: ",analisi_piu_3)
 
@@ -134,10 +141,13 @@ def processa_completamento_analisi(index_analisi):
         number_queue += 1
         # print("PRE AGGIORNAMENTO ID: ", job_to_out.get_id(), "VALORE USCITA:", job_to_out.get_uscita())
         job_to_out.set_uscita()
+        job_to_out.set_tempo_rimanente(0)
+        job_to_out.set_arrival_temp(t_Analisi[0].current)
+
         # print("POST AGGIORNAMENTO",job_to_out.get_id(), "VALORE USCITA: ", job_to_out.get_uscita())
         return_to_queue(job_to_out, queue, t_triage)
         t_queue.arrival = check_arrival(t_triage.arrival)  # DA RIVEDERE
-        job_to_out.set_arrival_temp(t_queue.current)
+        #job_to_out.set_arrival_temp(t_queue.current)
 
 
 def main():
@@ -150,6 +160,7 @@ def switch(prox_operazione, t_triage: Time, t_queue: Time, t_analisi: list):
     for i in range(len(t_analisi)):
         t_analisi[i].current = prox_operazione
 
+    #print(prox_operazione)
     if prox_operazione == t_triage.arrival:
         processa_arrivo_triage()
     elif prox_operazione == t_triage.min_completion:

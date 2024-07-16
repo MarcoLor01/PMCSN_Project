@@ -64,6 +64,8 @@ def pre_process_triage(t, area, number, server_busy):
     t.next = minimum(t.arrival, t.min_completion)  # next event time
 
     if number > 0 and t.last != t.next:
+        if t.last>t.next:
+            print("T_next", t.next, "T_last", t.last)
         area.node += (t.next - t.current) * number
         area.queue += (t.next - t.current) * (number - sum(server_busy) - job_att_inter_triage)
         for i in range(NUMERO_DI_SERVER_TRIAGE):
@@ -155,7 +157,7 @@ def triage_data(area, t, queue_triage):
     logger.info(f"Average interarrival time: {t.last / sum(area.jobs_completed):.2f}")
     logger.info(f"Average wait: {area.node / sum(area.jobs_completed):.2f}")
     logger.info(f"Average delay: {area.queue / sum(area.jobs_completed):.2f}")
-    # logger.info(f"Average delay: {sum(area.delay_time) / sum(area.jobs_completed):.2f}")
+    logger.info(f"Average delay NOW: {sum(area.delay_time) / sum(area.jobs_completed):.2f}")
     logger.info(f"Average service time: {(sum(area.service) + area.service_preemptive) / sum(area.jobs_completed):.2f}")
     logger.info(f"Average number_triage in the node: {area.node / t.last:.2f}")
     logger.info(f"Average number_triage in the queue: {area.queue / t.last:.2f}")
