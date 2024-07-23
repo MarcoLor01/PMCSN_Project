@@ -1,4 +1,4 @@
-from utility.Parameters import INFINITY, STOP
+from utility.Parameters import INFINITY, STOP, TEMPO_LIMITE
 
 
 def minimum(a, c):
@@ -21,11 +21,25 @@ def min_time_completion(completion_times):
     return min_completion_time, min_index
 
 
-def get_next_job_to_serve(list_of_queues):
+def get_next_job_to_serve(list_of_queues, t=0):
+    if len(list_of_queues) == 7:
+        if (len(list_of_queues[0]) + len(list_of_queues[1])) <= 0:
+            job = get_job_old(list_of_queues, t)
+            if job:
+                return job
+
     """Selects the next job to serve based on a priority policy"""
     for queue in list_of_queues:
         if queue:
             return queue.pop(0)  # Simple FIFO (First In, First Out) policy for each priority queue
+    return None
+
+
+def get_job_old(list_of_queues, t):
+    """Selects the next job to serve based on a priority policy"""
+    for queue in list_of_queues:
+        if queue and queue[0] and (t.current - queue[0].get_id()) > TEMPO_LIMITE:
+            return queue.pop(0)
     return None
 
 

@@ -103,7 +103,7 @@ def arrival_queue(t, servers_busy, queue_q):
     for i in range(NUMERO_DI_SERVER_QUEUE):
         if not servers_busy[i]:  # check if server is free
             full = False
-            job_to_serve = get_next_job_to_serve(queue_q)
+            job_to_serve = get_next_job_to_serve(queue_q, t_queue)
             if job_to_serve:
                 servers_busy[i] = True
                 server_queue[i] = job_to_serve
@@ -127,7 +127,7 @@ def arrival_queue(t, servers_busy, queue_q):
 
     # preemption
     if full and (len(queue_q[0]) + len(queue_q[1])) > 0:
-        job_to_serve = get_next_job_to_serve(queue_q)
+        job_to_serve = get_next_job_to_serve(queue_q, t_queue)
 
         for i in range(NUMERO_DI_SERVER_QUEUE):
             temp = server_queue[i].get_codice()
@@ -185,7 +185,7 @@ def completion_queue(t, server_busy, queue_q, area):
     t.completion[t.server_index] = INFINITY
     area.jobs_completed[t.server_index] += 1
     job_completed = server_queue[t.server_index]
-    job_to_serve = get_next_job_to_serve(queue_q)
+    job_to_serve = get_next_job_to_serve(queue_q, t_queue)
     #print ("Completato job:", job_completed.get_id(), "all'istante: ", t.current)
     if job_to_serve:
 

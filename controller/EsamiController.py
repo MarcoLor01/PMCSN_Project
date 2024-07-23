@@ -1,7 +1,5 @@
-from utility.Rngs import random, selectStream
+from utility.Rngs import random
 from utility.Utils import *
-from utility.Parameters import *
-from model.Job import *
 from utility.ArrivalService import *
 import logging
 from controller.ExamsQueueController import analisi_disponibili
@@ -55,7 +53,7 @@ def init_esame(t1: Time, area1: Track, queue1: list, num):
     t1.arrival = START
     t1.current = START  # set the clock
     for i in range(num):
-        t1.completion[i] = INFINITY + 1  # the first event can't be a completion */
+        t1.completion[i] = INFINITY  # the first event can't be a completion */
         area1.service[i] = 0
     for i in range(len(queue1)):
         area1.wait_time[i] = 0
@@ -204,27 +202,37 @@ def analisi_data(area_a, t_a, queue_a):
 
 def probability_analisi(volte_analisi):
     selectStream(25)
-    return False
-#    if volte_analisi <= 1:
-#        return True
-#    elif volte_analisi == 2:
-#        return random() <= 0.2  # 20% di probabilità
-#    elif volte_analisi == 3:
-#        return False  # 5% di probabilità
-#    else:
-#        return False  # 1% di probabilità
+    if volte_analisi <= 0:
+        return True
+    elif volte_analisi == 1:
+        return random() <= 0.5  # 50% di probabilità
+    elif volte_analisi == 2:
+        return random() <= 0.2  # 20% di probabilità
+    elif volte_analisi == 3:
+        return random() <= 0.05  # 5% di probabilità
+    else:
+        return random() <= 0.01  # 1% di probabilità
 
 
 #TODO
+#BAtch event - E TEORIA
+#Quali grafici stampare?
+#Ottimizzazione sistema
+#Capire i troncamenti
+
+#Ottimizzazione Codice
+#Relazione
 #1 - Tutti i tempi di servizio
-#2 - Sistemare statistiche
+#
 #
 #3 - Scheduling adattivo per migliorare se aspetti troppo ti mando
 #4 - Sensibilizzazione della popolazione
 #5 - Ridurre il numero di analisi
 
+
+
 def single_analisi_data(area, t, queue_first, index):
-    logger.info(f"STATS FOR ANALISI: {index:.2f}")
+    logger.info(f"STATS FOR ANALISI: {index:.0f}")
 
     #print("T.LAST: ", t.last, "COMPLETED: ", area.jobs_completed, "AREANODE: ", area.node, "AREAQUEUE: ", area.queue, "AREA SERVICE: ", area.service)
 

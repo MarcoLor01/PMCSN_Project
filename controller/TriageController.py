@@ -8,7 +8,6 @@ import logging
 # Configurazione del logger
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 logger = logging.getLogger(__name__)
-
 queueRed = []
 queueOrange = []
 queueBlue = []
@@ -64,7 +63,7 @@ def pre_process_triage(t, area, number, server_busy):
     t.next = minimum(t.arrival, t.min_completion)  # next event time
 
     if number > 0 and t.last != t.next:
-        if t.last>t.next:
+        if t.last > t.next:
             print("T_next", t.next, "T_last", t.last)
         area.node += (t.next - t.current) * number
         area.queue += (t.next - t.current) * (number - sum(server_busy) - job_att_inter_triage)
@@ -124,7 +123,6 @@ def arrival_triage(t, servers_busy, queue_t):
             t.completion[index] = t.current + GetServiceTriage()
 
 
-
 def completion_triage(t, server_busy, queue_t, area):
     global job_att_inter_triage
     server_busy[t.server_index] = False
@@ -150,6 +148,14 @@ def completion_triage(t, server_busy, queue_t, area):
 
     #print("Completato job con colore: ", job_completed.get_codice(), "e codice: ", job_completed.get_id())
     return job_completed
+
+
+def scegli_azione():
+    selectStream(50)
+    if random() <= 0.01:
+        return False
+    else:
+        return True
 
 
 def triage_data(area, t, queue_triage):

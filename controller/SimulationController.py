@@ -72,9 +72,10 @@ def processa_completamento_triage():
     #job_completed.set_time_triage(t_triage.current - job_completed.get_arrival_temp())
     # print("Pre:", job_completed.get_arrival_temp())
     # print("Post:", job_completed.get_arrival_temp())
-    number_queue += 1
-    pass_to_queue(job_completed, queue)
-    t_queue.arrival = check_arrival(t_triage.arrival + STOP)  # DA RIVEDERE
+    if job_completed.get_codice() == (1 or 2) or scegli_azione():
+        number_queue += 1
+        pass_to_queue(job_completed, queue)
+        t_queue.arrival = check_arrival(t_triage.arrival + STOP)  # DA RIVEDERE
     # print("T_Queue_a:", t_queue.arrival)
 
     #print("Arrivato job colore: ", job_completed.get_codice(), "con codice: ", job_completed.get_id(), "all'istante:",t_triage.current)

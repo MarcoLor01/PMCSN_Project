@@ -29,8 +29,7 @@ def GetServiceTriage():
     # * --------------------------------------------
     # */
     selectStream(2)
-    #return Exponential(5.5)
-    return Uniform(SX_SERVIZIO_TRIAGE, DX_SERVIZIO_TRIAGE)
+    return Exponential(MEDIA_SERVIZIO_TRIAGE)
 
 def GetServiceQueue():
     # --------------------------------------------
@@ -38,7 +37,7 @@ def GetServiceQueue():
     # * --------------------------------------------
     # */
     selectStream(4)
-    return Uniform(10, 15)
+    return Exponential(MEDIA_TASSO_DI_SERVIZIO_QUEUE)
 
 
 def GetServiceAnalisi(analisi, media):
