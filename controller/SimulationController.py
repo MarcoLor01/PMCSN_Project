@@ -5,10 +5,6 @@ from controller.EsamiController import *
 from utility.Rngs import plantSeeds, DEFAULT
 
 arrivalTemp = START  # global temp var for getArrival function
-analisi_1_volta = 0
-analisi_2_volte = 0
-analisi_3_volte = 0
-analisi_piu_3 = 0
 plantSeeds(DEFAULT)
 
 
@@ -17,7 +13,10 @@ def simulation():
     global arrivalTemp
     global number_triage, index_triage, queue_triage
     global number_queue, index_queue, queue
-
+    analisi_1_volta = 0
+    analisi_2_volte = 0
+    analisi_3_volte = 0
+    analisi_piu_3 = 0
     arrivalTemp = START
     arrivalTemp = arrivalTemp + GetArrival()
     init_triage(arrivalTemp)
@@ -136,5 +135,24 @@ def switch(prox_operazione, t_triage, t_queue, t_analisi):
                 break
 
 
+def reset():
+    global index_triage, index_queue, index_Analisi
+    t_triage.reset()
+    area_triage.reset()
+    index_triage = 0
+
+    t_queue.reset()
+    area_queue.reset()
+    index_queue = 0
+
+    for i in range(len(t_Analisi)):
+        t_Analisi[i].reset()
+        area_Analisi[i].reset()
+        index_Analisi[i] = 0
+
+
 if __name__ == "__main__":
-    simulation()
+    for i in range (5):
+        print("Simulazione n ", i)
+        simulation()
+        reset()

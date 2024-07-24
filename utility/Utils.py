@@ -12,6 +12,18 @@ class Track:
         self.jobs_complete_color = [0] * num_queue
         self.wait_time = [0.0] * num_queue
         self.delay_time = [0.0] * num_queue
+        self.num_queue = num_queue
+        self.num_serv = num_serv
+    def reset(self):
+        self.node = 0.0  # time integrated number in the node
+        self.queue = 0.0  # time integrated number in the queue
+        self.service = [0.0] * self.num_serv  # time integrated number in service
+        self.service_color = [0.0] * self.num_queue
+        self.service_preemptive = 0.0
+        self.jobs_completed = [0] * self.num_serv
+        self.jobs_complete_color = [0] * self.num_queue
+        self.wait_time = [0.0] * self.num_queue
+        self.delay_time = [0.0] * self.num_queue
 
 
 class Time:
@@ -23,7 +35,15 @@ class Time:
         self.current = -1  # current time
         self.next = -1  # next (most imminent) event time
         self.last = -1  # last arrival time
-
+        self.num_serv = num_serv
+    def reset(self):
+        self.arrival = -1
+        self.completion = [INFINITY] * self.num_serv
+        self.min_completion = INFINITY
+        self.server_index = -1
+        self.current = -1
+        self.next = -1
+        self.last = -1
 
 def minimum(a, c):
     # ------------------------------
