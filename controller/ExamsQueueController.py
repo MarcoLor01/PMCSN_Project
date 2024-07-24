@@ -1,10 +1,7 @@
-from utility.Rngs import random, selectStream
-from utility.Utils import *
-from utility.Parameters import *
-from model.Job import *
+from utility.Rngs import random
 from utility.ArrivalService import *
 import logging
-from collections import Counter
+from model.Job import *
 
 # Configurazione del logger
 logging.basicConfig(level=logging.INFO, format='%(message)s')
@@ -30,72 +27,14 @@ queue_analisi = [queueRed_a, queueNotRed_a]
 
 
 def get_analisi():
-    selectStream(6)
     num_analisi = determina_numero_analisi()
-    selectStream(7)
     analisi_da_fare = esegui_analisi(num_analisi)
     return analisi_da_fare
 
 
-# PROBABILITA ANALISI
-# 0 ANALISI: 0%
-# 1 ANALISI: 8.9%
-# 2 ANALISI: 30%
-# 3 ANALISI: 50%
-# 4 ANALISI: 10%
-# 5 ANALISI: 1%
-# 6 ANALISI: 0.1%
-
-# --1 ANALISI--
-# ECG: 0%
-# Ecografia: 0%
-# Emocromo: 0.4%
-# Radiografia: 0.3%
-# Tac: 0%
-# Altro: 0.3%
-
-# --2 ANALISI--
-# Emocromo: 0.9
-# ECG:
-# Radiografia: 50%
-# Ecografia: 20%
-# Tac: 6%
-# Altro: 50%
-
-# --3 ANALISI--
-# ECG: 90%
-# Ecografia: 20%
-# Emocromo: 99%
-# Radiografia: 50%
-# Tac: 6%
-# Altro: 50%
-
-# --4 ANALISI--
-# ECG: 90%
-# Ecografia: 20%
-# Emocromo: 99%
-# Radiografia: 50%
-# Tac: 6%
-# Altro: 50%
-
-# --5 ANALISI--
-# ECG: 90%
-# Ecografia: 20%
-# Emocromo: 99%
-# Radiografia: 50%
-# Tac: 6%
-# Altro: 50%
-
-# --6 ANALISI--
-# ECG: 90%
-# Ecografia: 20%
-# Emocromo: 99%
-# Radiografia: 50%
-# Tac: 6%
-# Altro: 50%
-
 def determina_numero_analisi():
     # Probabilità cumulative per il numero di analisi da fare (0-6)
+    selectStream(5)
     num_analisi = [0, 1, 2, 3, 4, 5, 6]
     cumulative_probabilities = [0.0, 0.089, 0.389, 0.889, 0.989, 0.999, 1.0]
     rand_num = random()
@@ -120,6 +59,7 @@ analisi_disponibili = ['ECG', 'Emocromo', 'Tac', 'Radiografia', 'Ecografia', 'Al
 
 
 def scegli_analisi(numero_analisi):
+    selectStream(6)
     analisi_frequenze = frequenze_assolute[numero_analisi]
     totale_frequenze = sum(analisi_frequenze.values())
     cumulative_prob = {}
@@ -140,21 +80,5 @@ def scegli_analisi(numero_analisi):
 
 
 def esegui_analisi(numero_analisi):
+
     return scegli_analisi(numero_analisi)
-
-
-def test_esegui_analisi(num_samples, numero_analisi):
-    results = []
-    for _ in range(num_samples):
-        analisi = esegui_analisi(numero_analisi)
-        results.extend(analisi)
-    counter = Counter(results)
-    print(counter)
-
-
-def test_vari_numeri_analisi():
-    for numero_analisi in range(1, 7):
-        print(f"Numero di analisi: {numero_analisi}")
-        test_esegui_analisi(100000, numero_analisi)
-        print("--------------------")
-

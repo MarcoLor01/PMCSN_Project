@@ -1,3 +1,4 @@
+from model.Job import Job
 from utility.Rngs import random
 from utility.Utils import *
 from utility.ArrivalService import *
@@ -36,30 +37,25 @@ MEDIA_DI_SERVIZIO_ANALISI = [MEDIA_DI_SERVIZIO_ECG, MEDIA_DI_SERVIZIO_EMOCROMO, 
 
 
 def assign_esami():
-    # Lista dei codici corrispondenti
-    # ECG = 1, EMOCROMO = 2, TAC = 3, RADIOGRAFIA = 4, ECOGRAFIA = 5, ALTRO = 6
     esami = [1, 2, 3, 4, 5, 6]
-    # Probabilità cumulative corrispondenti
-    cumulative_probabilities = [0.063, 0.259, 0.350, 0.642, 0.948, 1.0]  # Probabilità cumulative
-
+    cumulative_probabilities = [0.063, 0.259, 0.350, 0.642, 0.948, 1.0]
     rand_num = random()
-    # Determinare il codice basato sul numero casuale
     for esame, cum_prob in zip(esami, cumulative_probabilities):
         if rand_num < cum_prob:
             return esame
 
 
-def init_esame(t1: Time, area1: Track, queue1: list, num):
+def init_esame(t1, area1, queue1, num):
     t1.arrival = START
-    t1.current = START  # set the clock
+    t1.current = START
     for i in range(num):
-        t1.completion[i] = INFINITY  # the first event can't be a completion */
+        t1.completion[i] = INFINITY
         area1.service[i] = 0
     for i in range(len(queue1)):
         area1.wait_time[i] = 0
         area1.jobs_complete_color[i] = 0
     area1.node = 0
-    area1.queue1 = 0
+    area1.queue = 0
 
 
 def init_analisi(t1, area1, queue1):
@@ -68,19 +64,15 @@ def init_analisi(t1, area1, queue1):
 
 
 def pre_process_esame(t3, area3, number3, server_busy3, num3):
-    t3.min_completion, t3.server_index = min_time_completion(
-        t3.completion + [INFINITY])  # include INFINITY for queue check
-
-    t3.next = t3.min_completion  # next event time
-
+    t3.min_completion, t3.server_index = min_time_completion(t3.completion + [INFINITY])
+    t3.next = t3.min_completion
     if number3 > 0 and t3.last != t3.next:
         area3.node += (t3.next - t3.current) * number3
         area3.queue += (t3.next - t3.current) * (number3 - sum(server_busy3))
         for i in range(num3):
             if server_busy3[i]:
-                area3.service[i] = area3.service[i] + (t3.next - t3.current)
-
-    t3.current = t3.next  # advance the clock
+                area3.service[i] += (t3.next - t3.current)
+    t3.current = t3.next
     if t3.next < INFINITY:
         t3.last = t3.next
 
@@ -90,37 +82,25 @@ def pre_process_analisi(t2, area2, number2, server_busy2):
         pre_process_esame(t2[i], area2[i], number2[i], server_busy2[i], NUMERO_SERVER_ANALISI[i])
 
 
-def pass_to_analisi(job: Job, queue1, t1):
+def pass_to_analisi(job, queue1, t1):
     analisi = get_next_analisi(job)
     analisi_da_fare = job.get_lista_analisi()[analisi]
     analisi, posto_analisi = switch(analisi_da_fare, job)
     t_Analisi[analisi].arrival = t1.last
-    t_Analisi[analisi].arrival = check_arrival(t1.arrival + STOP)  # DA RIVEDERE
+    t_Analisi[analisi].arrival = check_arrival(t1.arrival + STOP)
     arrival_analisi(t_Analisi[analisi], servers_busy_Analisi[analisi], queue1[analisi], analisi)
     return analisi
 
 
-#
-#    analisi_tipo, posto_analisi = switch(analisi_da_fare, job)
-#    arrival_analisi(t_Analisi[analisi_tipo], servers_busy_Analisi[analisi_tipo], queue1[analisi_tipo], analisi_tipo)
-#    t_Analisi[analisi_tipo].arrival = t1.current
-#    t_Analisi[analisi_tipo].arrival = check_arrival(t1.arrival)
-#    job.get_lista_analisi().pop(analisi)
-#return analisi_tipo
-
-
 def get_next_analisi(job):
     lista_analisi = job.get_lista_analisi()
-
     best_metric = 0
     best_index = -1
-
     for i in range(len(lista_analisi)):
         metric = calculate_metrics_on_analisi(lista_analisi[i])
         if metric > best_metric:
             best_metric = metric
             best_index = i
-
     return best_index
 
 
@@ -132,36 +112,28 @@ def calculate_metrics_on_analisi(analisi):
         return NUMERO_SERVER_ANALISI[i] / (number_Analisi[i] * MEDIA_DI_SERVIZIO_ANALISI[i])
 
 
-def switch(analisi_da_fare, job: Job):
+def switch(analisi_da_fare, job):
     num_coda = -1
-
-    if job.get_codice() == 1:
-        queue_posto = 0
-    else:
-        queue_posto = 1
-
-    if analisi_da_fare == "ECG":
-        num_coda = 0
-    elif analisi_da_fare == "Emocromo":
-        num_coda = 1
-    elif analisi_da_fare == "Tac":
-        num_coda = 2
-    elif analisi_da_fare == "Radiografia":
-        num_coda = 3
-    elif analisi_da_fare == "Ecografia":
-        num_coda = 4
-    elif analisi_da_fare == "Altro":
-        num_coda = 5
+    queue_posto = 0 if job.get_codice() == 1 else 1
+    analisi_mapping = {
+        "ECG": 0,
+        "Emocromo": 1,
+        "Tac": 2,
+        "Radiografia": 3,
+        "Ecografia": 4,
+        "Altro": 5
+    }
+    if analisi_da_fare in analisi_mapping:
+        num_coda = analisi_mapping[analisi_da_fare]
     else:
         logger.error("Analisi non presente")
-
     queue_Analisi[num_coda][queue_posto].append(job)
     return num_coda, queue_posto
 
 
 def arrival_analisi(t, servers_busy, queue_1, analisi):
     for i in range(NUMERO_SERVER_ANALISI[analisi]):
-        if not servers_busy[i]:  # check if server is free
+        if not servers_busy[i]:
             job_to_serve = get_next_job_to_serve(queue_1)
             if job_to_serve:
                 servers_busy[i] = True
@@ -180,7 +152,6 @@ def completion_analisi(t1, server_busy1, queue_q1, area1, index1):
         server_busy1[t1.server_index] = True
         server_Analisi[index1][t1.server_index] = job_to_serve
         t1.completion[t1.server_index] = t1.current + GetServiceAnalisi(index1, MEDIA_DI_SERVIZIO_ANALISI[index1])
-
     if job_completed is Job or job_completed:
         if job_completed.get_codice() == 1:
             area1.wait_time[job_completed.get_codice() - 1] += (t1.current - job_completed.get_arrival_temp())
@@ -190,7 +161,6 @@ def completion_analisi(t1, server_busy1, queue_q1, area1, index1):
             area1.jobs_complete_color[1] += 1
     else:
         logger.error("Job set to null")
-
     return job_completed
 
 
@@ -201,50 +171,29 @@ def analisi_data(area_a, t_a, queue_a):
 
 
 def probability_analisi(volte_analisi):
-    selectStream(25)
+    selectStream(7)
     if volte_analisi <= 0:
         return True
     elif volte_analisi == 1:
-        return random() <= 0.5  # 50% di probabilità
+        return random() <= 0.5
     elif volte_analisi == 2:
-        return random() <= 0.2  # 20% di probabilità
+        return random() <= 0.2
     elif volte_analisi == 3:
-        return random() <= 0.05  # 5% di probabilità
+        return random() <= 0.05
     else:
-        return random() <= 0.01  # 1% di probabilità
-
-
-#TODO
-#BAtch event - E TEORIA
-#Quali grafici stampare?
-#Ottimizzazione sistema
-#Capire i troncamenti
-
-#Ottimizzazione Codice
-#Relazione
-#1 - Tutti i tempi di servizio
-#
-#
-#3 - Scheduling adattivo per migliorare se aspetti troppo ti mando
-#4 - Sensibilizzazione della popolazione
-#5 - Ridurre il numero di analisi
-
+        return random() <= 0.01
 
 
 def single_analisi_data(area, t, queue_first, index):
     logger.info(f"STATS FOR ANALISI: {index:.0f}")
-
-    #print("T.LAST: ", t.last, "COMPLETED: ", area.jobs_completed, "AREANODE: ", area.node, "AREAQUEUE: ", area.queue, "AREA SERVICE: ", area.service)
-
     logger.info(
-        f"Average interarrival time: {t.last / sum(area.jobs_completed) if sum(area.jobs_completed) > 0 else 0 :.2f}")
-    logger.info(f"Average wait: {area.node / sum(area.jobs_completed) if sum(area.jobs_completed) > 0 else 0 :.2f}")
-    logger.info(f"Average delay: {area.queue / sum(area.jobs_completed) if sum(area.jobs_completed) > 0 else 0 :.2f}")
+        f"Average interarrival time: {t.last / sum(area.jobs_completed) if sum(area.jobs_completed) > 0 else 0:.2f}")
+    logger.info(f"Average wait: {area.node / sum(area.jobs_completed) if sum(area.jobs_completed) > 0 else 0:.2f}")
+    logger.info(f"Average delay: {area.queue / sum(area.jobs_completed) if sum(area.jobs_completed) > 0 else 0:.2f}")
     logger.info(
-        f"Average service time: {sum(area.service) / sum(area.jobs_completed) if sum(area.jobs_completed) > 0 else 0 :.2f}")
+        f"Average service time: {sum(area.service) / sum(area.jobs_completed) if sum(area.jobs_completed) > 0 else 0:.2f}")
     logger.info(f"Average number_triage in the node: {area.node / t.last:.8f}")
     logger.info(f"Average number_triage in the queue: {area.queue / t.last:.8f}")
-
     for i in range(NUMERO_SERVER_ANALISI[index]):
         utilization = area.service[i] / t.last if t.last > 0 else 0
         avg_service_time = area.service[i] / area.jobs_completed[i] if area.jobs_completed[i] > 0 else 0
@@ -252,6 +201,4 @@ def single_analisi_data(area, t, queue_first, index):
         logger.info(f"Average service time of server {i + 1}: {avg_service_time:.2f}")
     for i in range(len(queue_first)):
         if area.jobs_complete_color[i] != 0:
-            # logger.info(f"Waiting time for color {i + 1}: {area.wait_time[i]}")
-            # logger.info(f"job for color {i + 1}: {area.jobs_complete_color[i]}")
             logger.info(f"Attesa media {i + 1}: {area.wait_time[i] / area.jobs_complete_color[i]}")

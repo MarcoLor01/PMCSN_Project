@@ -39,7 +39,6 @@
 from utility.Rngs import random
 from math import log, sqrt, exp
 
-
 def Bernoulli(p):
     # ========================================================
     # Returns 1 with probability p or 0 with probability 1 - p.
@@ -322,3 +321,5 @@ def testFunctions():
     else:
         print("FIX STUDENT - Produced: ", stu)
         print("Expected: -1.429058")
+
+

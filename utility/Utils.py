@@ -1,61 +1,4 @@
-from utility.Parameters import INFINITY, STOP, TEMPO_LIMITE
-
-
-def minimum(a, c):
-    # ------------------------------
-    # * return the smaller of a, b
-    # * ------------------------------
-    # */
-    if a < c:
-        return a
-    else:
-        return c
-
-
-def min_time_completion(completion_times):
-    """Returns the minimum completion time and the index of the server"""
-    min_completion_time = min(completion_times)
-    min_index = completion_times.index(min_completion_time)
-    if min_index == len(completion_times) - 1:
-        min_index = 0
-    return min_completion_time, min_index
-
-
-def get_next_job_to_serve(list_of_queues, t=0):
-    if len(list_of_queues) == 7:
-        if (len(list_of_queues[0]) + len(list_of_queues[1])) <= 0:
-            job = get_job_old(list_of_queues, t)
-            if job:
-                return job
-
-    """Selects the next job to serve based on a priority policy"""
-    for queue in list_of_queues:
-        if queue:
-            return queue.pop(0)  # Simple FIFO (First In, First Out) policy for each priority queue
-    return None
-
-
-def get_job_old(list_of_queues, t):
-    """Selects the next job to serve based on a priority policy"""
-    for queue in list_of_queues:
-        if queue and queue[0] and (t.current - queue[0].get_id()) > TEMPO_LIMITE:
-            return queue.pop(0)
-    return None
-
-
-def add_job_to_queue(job, queue):
-    index = job.get_codice() - 1  # Utilizza getCodice per determinare l'indice della lista
-    if 0 <= index < len(queue):
-        queue[index].append(job)
-    else:
-        print(f"Index {index} is out of range for list_of_queues")
-
-
-def check_arrival(arrival: int):
-    if arrival >= STOP:
-        return INFINITY
-    else:
-        return arrival
+from utility.Parameters import INFINITY, STOP, TEMPO_LIMITE, START
 
 
 class Track:
@@ -82,38 +25,81 @@ class Time:
         self.last = -1  # last arrival time
 
 
+def minimum(a, c):
+    # ------------------------------
+    # * return the smaller of a, b
+    # * ------------------------------
+    # */
+    if a < c:
+        return a
+    else:
+        return c
+
+
+def min_time_completion(completion_times):
+    """Returns the minimum completion time and the index of the server"""
+    min_completion_time = min(completion_times)
+    min_index = completion_times.index(min_completion_time)
+    if min_index == len(completion_times) - 1:
+        min_index = 0
+    return min_completion_time, min_index
+
+
+def get_job_old(list_of_queues, t):
+    """Selects the next job to serve based on a priority policy"""
+    for queue in list_of_queues:
+        if queue and queue[0] and (t.current - queue[0].get_id()) > TEMPO_LIMITE:
+            return queue.pop(0)
+    return None
+
+
+def add_job_to_queue(job, queue):
+    index = job.get_codice() - 1  # Utilizza getCodice per determinare l'indice della lista
+    if 0 <= index < len(queue):
+        queue[index].append(job)
+    else:
+        print(f"Index {index} is out of range for list_of_queues")
+
+
+def check_arrival(arrival: int):
+    if arrival >= STOP:
+        return INFINITY
+    else:
+        return arrival
+
+
 def next_event(current_triage: int, current_queue: int, t_analisi: list):
     prox_evento = INFINITY
     for i in range(len(t_analisi)):
         if t_analisi[i].current > 0:
             prox_evento = min(prox_evento, t_analisi[i].current)
-            #print("Analisi num", i, t_analisi[i].current, "Min: ", prox_evento)
 
     if current_queue > 0:
         prox_evento = min(prox_evento, current_queue)
-        #print("Queue", current_queue, "Min: ", prox_evento)
 
     if current_triage > 0:
         prox_evento = min(prox_evento, current_triage)
-        #print("Triage", current_triage, "Min: ", prox_evento)
 
     if prox_evento >= INFINITY:
         prox_evento = -1
 
-    #print("Evento minimo", prox_evento)
-
     return prox_evento
 
 
-def next_eventt(t_triage: Time, t_queue: Time, t_analisi: list):
-    prox_evento = INFINITY
-    for i in range(len(t_analisi)):
-        if t_analisi[i].current > 0:
-            prox_evento = min(prox_evento, t_analisi[i].current)
-    if t_queue.min_completion > 0:
-        prox_evento = min(prox_evento, t_queue.min_completion)
-    if t_queue.min_completion > 0:
-        prox_evento = min(prox_evento, t_queue.min_completion)
-    print(prox_evento)
+def initialize_arrival(t):
+    t.arrival = START
+    t.current = START
 
-    return prox_evento
+
+def get_next_job_to_serve(list_of_queues, t: Time = 0):
+    if len(list_of_queues) == 7:
+        if (len(list_of_queues[0]) + len(list_of_queues[1])) <= 0:
+            job = get_job_old(list_of_queues, t)
+            if job:
+                return job
+
+    """Selects the next job to serve based on a priority policy"""
+    for queue in list_of_queues:
+        if queue:
+            return queue.pop(0)  # Simple FIFO (First In, First Out) policy for each priority queue
+    return None

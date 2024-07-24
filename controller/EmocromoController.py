@@ -1,8 +1,6 @@
-from utility.Rngs import random, selectStream
 from utility.Utils import *
-from utility.Parameters import *
-from model.Job import *
 from utility.ArrivalService import *
+from model.Job import *
 
 queueRed_Emocromo = []
 queueNotRed_Emocromo = []
