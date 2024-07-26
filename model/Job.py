@@ -6,11 +6,18 @@ class Job:
         self.__analisi_enum = None
         self.__interrotto = None
         self.__triage_time = None
+        self.__analisi_time = None
         self.__lista_analisi = None
         self.__queue_time = None
         self.__uscita = 0
         self.__tempo_rimanente = 0
         self.__id = istante_arrivo
+
+    def get_interrotto(self):
+        return self.__interrotto
+
+    def set_interrotto(self, interrotto: float):
+        self.__interrotto = interrotto
 
     def set_tempo_rimanente(self, tempo_rimanente):
         self.__tempo_rimanente = tempo_rimanente
@@ -32,6 +39,12 @@ class Job:
 
     def get_queue_time(self):
         return self.__queue_time
+
+    def set_analisi_time(self, analisi_time: int):
+        self.__analisi_time = analisi_time
+
+    def get_analisi_time(self):
+        return self.__analisi_time
 
     def set_lista_analisi(self, lista_analisi):
         if not isinstance(lista_analisi, list):

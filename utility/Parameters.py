@@ -2,15 +2,15 @@ import numpy as np
 
 # Costanti per la simulazione del sistema
 START = 0.0  # initial time */
-STOP = 7 * 1440.0  # terminal time */
+STOP = 7 * 1440.0  # 10080 terminal time */
 
-#True = Batch( infinite )  False = Base( Finite )
+# True = Exponential  False = Truncate G.
 MODALITY = False
 
-#STOP = 20.0
+# STOP = 20.0
 INFINITY = float(100.0 * STOP)  # must be much larger than STOP  */
-
-#Triage
+# INFINITY = float('inf')
+# Triage
 TASSO_DI_INGRESSO = 0.092163242  # ingressi (arrivals per unit time)
 NUMERO_DI_SERVER_TRIAGE = 1
 MEDIA_SERVIZIO_TRIAGE = 5.5
@@ -18,7 +18,7 @@ UPPER_BOUND_TRIAGE = 7
 LOWER_BOUND_TRIAGE = 2
 DEVIAZIONE_STANDARD_TRIAGE = 1.5
 
-#Queue
+# Queue
 NUMERO_DI_SERVER_QUEUE = 4
 MEDIA_TASSO_DI_SERVIZIO_QUEUE = 16
 TEMPO_LIMITE = 420
@@ -70,4 +70,3 @@ LOWER_BOUND_ANALISI = [LOWER_BOUND_ECG, LOWER_BOUND_EMOCROMO, LOWER_BOUND_TAC, L
 DEVIAZIONE_STANDARD_ANALISI = [DEVIAZIONE_STANDARD_ECG, DEVIAZIONE_STANDARD_EMOCROMO, DEVIAZIONE_STANDARD_TAC,
                                DEVIAZIONE_STANDARD_RADIOGRAFIA, DEVIAZIONE_STANDARD_ECOGRAFIA,
                                DEVIAZIONE_STANDARD_ALTRI_ESAMI]
-

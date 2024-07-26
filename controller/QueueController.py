@@ -62,7 +62,6 @@ def pre_process_queue(area, number, server_busy):
     t_queue.min_completion, t_queue.server_index = min_time_completion(
         t_queue.completion + [INFINITY])  # include INFINITY for queue check
     t_queue.next = t_queue.min_completion  # next event time
-
     if number > 0 and t_queue.last != t_queue.next:
         area.node += (t_queue.next - t_queue.current) * number
         area.queue += (t_queue.next - t_queue.current) * (number - sum(server_busy) - job_att_inter_queue)
@@ -70,6 +69,7 @@ def pre_process_queue(area, number, server_busy):
     t_queue.current = t_queue.next  # advance the clock
     if t_queue.next < INFINITY:
         t_queue.last = t_queue.next
+
 
 
 def arrival_queue(t, servers_busy, queue_q):
@@ -91,15 +91,17 @@ def arrival_queue(t, servers_busy, queue_q):
                 if job_to_serve.get_tempo_rimanente() == 0:
                     temp = GetServiceQueue()
                     area_queue.service_color[
-                        get_queue(job_to_serve.get_codice(), job_to_serve.get_tempo_rimanente())] += temp
+                        get_queue(job_to_serve.get_codice(), job_to_serve.get_uscita())] += temp
                     area_queue.service[i] += temp
+                    # print(area_queue.service)
                     t_queue.completion[i] = t.current + temp
-
                     job_to_serve.set_queue_time(t.current)
 
                 else:
                     job_att_inter_queue = job_att_inter_queue - 1
                     t_queue.completion[i] = t.current + job_to_serve.get_tempo_rimanente()
+                    area_queue.service[i] += job_to_serve.get_tempo_rimanente()
+                    area_queue.service_preemption[get_queue(job_to_serve.get_codice(), job_to_serve.get_uscita())] += t.current - job_to_serve.get_interrotto()
                 break
 
     # preemption
@@ -121,23 +123,25 @@ def arrival_queue(t, servers_busy, queue_q):
         else:
 
             job_to_serve.set_queue_time(t.current)
-
+            job_interrotto.set_interrotto(t.current)
             job_att_inter_queue = job_att_inter_queue + 1
             job_interrotto.set_tempo_rimanente(t.completion[index] - t.current)
+            area_queue.service[index] -= (t.completion[index] - t.current)
             server_queue[index] = job_to_serve
             coda_preemptive(queue_q, job_interrotto)
             temp = GetServiceQueue()
             t_queue.completion[index] = t_queue.current + temp
-            area_queue.service_color[get_queue(job_to_serve.get_codice(), job_to_serve.get_tempo_rimanente())] += temp
+            area_queue.service_color[get_queue(job_to_serve.get_codice(), job_to_serve.get_uscita())] += temp
             area_queue.service[index] += temp
+            #print(area_queue.service)
 
 
-def get_queue(codice: int, tempo: int):
-    if tempo > 0 and codice == 1:
+def get_queue(codice: int, uscita: int):
+    if uscita != 0 and codice == 1:
         return 1
     elif codice == 1:
         return 0
-    elif tempo > 0:
+    elif uscita != 0:
         return 2
     return codice + 1
 
@@ -166,14 +170,17 @@ def completion_queue(t, server_busy, queue_q, area):
         server_queue[t.server_index] = job_to_serve
         if job_to_serve.get_tempo_rimanente() == 0:
             temp = GetServiceQueue()
-            area_queue.service_color[get_queue(job_to_serve.get_codice(), job_to_serve.get_tempo_rimanente())] += temp
+            area_queue.service_color[get_queue(job_to_serve.get_codice(), job_to_serve.get_uscita())] += temp
             area_queue.service[t.server_index] += temp
+            #print(area_queue.service)
 
             t.completion[t.server_index] = t.current + temp
             job_to_serve.set_queue_time(t.current)
         else:
             t.completion[t.server_index] = t.current + job_to_serve.get_tempo_rimanente()
             job_att_inter_queue = job_att_inter_queue - 1
+            area_queue.service[t.server_index] += job_to_serve.get_tempo_rimanente()
+            area_queue.service_preemption[get_queue(job_to_serve.get_codice(), job_to_serve.get_uscita())] += t.current - job_to_serve.get_interrotto()
 
     if isinstance(job_completed, Job) and job_completed:
         if job_completed.get_uscita():

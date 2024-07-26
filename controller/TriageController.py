@@ -148,7 +148,8 @@ def completion_triage(t, server_busy, queue_t, area):
 
 def scegli_azione():
     selectStream(3)
-    return random() > 0.01
+    return True
+    #return random() > 0.01
 
 
 def triage_data(area, t, queue_t):
@@ -161,6 +162,8 @@ def triage_data(area, t, queue_t):
     logger.info(f"Average service time: {(sum(area.service) + area.service_preemptive) / total_jobs_completed:.2f}")
     logger.info(f"Average number in the node: {area.node / t.last:.2f}")
     logger.info(f"Average number in the queue: {area.queue / t.last:.2f}")
+    logger.info(f"T last: {t.last:.2f}")
+
     for i in range(NUMERO_DI_SERVER_TRIAGE):
         utilization = area.service[i] / t.last if t.last > 0 else 0
         logger.info(f"Utilization of server {i + 1}: {utilization:.2f}")
@@ -168,3 +171,22 @@ def triage_data(area, t, queue_t):
         if area.jobs_complete_color[i] != 0:
             logger.info(f"Tempo di risposta medio {i + 1}: {area.wait_time[i] / area.jobs_complete_color[i]:.10f}")
             logger.info(f"Tempo di attesa medio {i + 1}: {area.delay_time[i] / area.jobs_complete_color[i]:.10f}")
+
+
+def triage_data_rec(area, t, queue_t):
+    logger.info(f"Average wait: {sum(area.wait_time) / sum(area.jobs_completed):.2f}")
+    logger.info(f"Average delay: {sum(area.delay_time) / sum(area.jobs_completed):.2f}")
+    logger.info(f"Average service: {(sum(area.wait_time) - sum(area.delay_time)) / sum(area.jobs_completed):.2f}")
+    logger.info(f"Average service no preemptive: {sum(area.service_color) / sum(area.jobs_completed):.2f}")
+    for i in range(len(queue_t)):
+        if area.jobs_complete_color[i] != 0:
+            logger.info(
+                f"Tempo di risposta medio {i + 1}: {area.wait_time[i] / area.jobs_complete_color[i]:.10f}")
+            logger.info(
+                f"Tempo somma {i + 1}: {(area.service_preemption[i] + area.service_color[i] + area.delay_time[i])/ area.jobs_complete_color[i]:.10f}")
+            logger.info(
+                f"Tempo di attesa medio {i + 1}: {area.delay_time[i] / area.jobs_complete_color[i]:.10f}")
+            logger.info(
+                f"Tempo di servizio medio {i + 1}: {area.service_color[i] / area.jobs_complete_color[i]:.10f}")
+            logger.info(
+                f"Tempo preemption {i + 1}: {area.service_preemption[i] / area.jobs_complete_color[i]:.10f}")

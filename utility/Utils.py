@@ -12,6 +12,8 @@ class Track:
         self.jobs_complete_color = [0] * num_queue
         self.wait_time = [0.0] * num_queue
         self.delay_time = [0.0] * num_queue
+        self.service_preemption = [0.0] * num_queue
+
         self.num_queue = num_queue
         self.num_serv = num_serv
     def reset(self):
@@ -20,6 +22,7 @@ class Track:
         self.service = [0.0] * self.num_serv  # time integrated number in service
         self.service_color = [0.0] * self.num_queue
         self.service_preemptive = 0.0
+        self.service_preemption = [0.0] * self.num_queue
         self.jobs_completed = [0] * self.num_serv
         self.jobs_complete_color = [0] * self.num_queue
         self.wait_time = [0.0] * self.num_queue
@@ -123,3 +126,11 @@ def get_next_job_to_serve(list_of_queues, t: Time = 0):
         if queue:
             return queue.pop(0)  # Simple FIFO (First In, First Out) policy for each priority queue
     return None
+
+
+def max_value(t_analisi: list, t_last1: float, t_last2: float):
+    maximum = max(t_last1, t_last2)
+    for i in range(len(t_analisi)):
+        if t_analisi[i].last > maximum:
+            maximum = t_analisi[i].last
+    return maximum

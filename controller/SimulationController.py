@@ -3,12 +3,14 @@ from controller.QueueController import *
 from controller.ExamsQueueController import *
 from controller.EsamiController import *
 from utility.Rngs import plantSeeds, DEFAULT
+from utility.SimulationUtils import stat, stats
 
 arrivalTemp = START  # global temp var for getArrival function
 plantSeeds(DEFAULT)
 
 
-def simulation():
+def simulation(stop = STOP):
+
     global number_Analisi, index_Analisi, queue_Analis, analisi_1_volta, analisi_2_volte, analisi_piu_3, analisi_3_volte
     global arrivalTemp
     global number_triage, index_triage, queue_triage
@@ -23,24 +25,30 @@ def simulation():
     init_queue()
     init_analisi(t_Analisi, area_Analisi, queue_Analisi)
 
-    while t_triage.arrival < STOP or number_triage > 0 or number_queue > 0 or max(number_Analisi) > 0:
+    while t_triage.arrival < stop or number_triage > 0 or number_queue > 0 or max(number_Analisi) > 0:
         pre_process_triage(t_triage, area_triage, number_triage, servers_busy_triage)
         pre_process_queue(area_queue, number_queue, servers_busy_queue)
         pre_process_analisi(t_Analisi, area_Analisi, number_Analisi, servers_busy_Analisi)
         prox_operazione = next_event(t_triage.current, t_queue.current, t_Analisi)
         switch(prox_operazione, t_triage, t_queue, t_Analisi)
+    t_triage.last = t_queue.last = t_Analisi[0].last = t_Analisi[1].last = t_Analisi[2].last = t_Analisi[3].last = t_Analisi[4].last = t_Analisi[5].last = max_value(t_Analisi, t_triage.last, t_queue.last)
+#     if prox_operazione < INFINITY:
+#         t_triage.last = prox_operazione
+#         t_queue.last = prox_operazione
+#         for i in range(len(t_analisi)):
+#             t_analisi[i].last = prox_operazione
 
-    triage_data(area_triage, t_triage, queue_triage)
-    queue_data(area_queue, t_queue, queue)
-    analisi_data(area_Analisi, t_Analisi, queue_Analisi)
-
-    print("Analisi: ", sum(index_Analisi))
-    print("Queue  : ", index_queue)
-    print("Triage : ", index_triage)
-    print("Job che hanno fatto esami 1 volta: ", analisi_1_volta)
-    print("Job che hanno fatto esami 2 volte: ", analisi_2_volte)
-    print("Job che hanno fatto esami 3 volte: ", analisi_3_volte)
-    print("Job che hanno fatto esami 4 volte: ", analisi_piu_3)
+    triage_data_rec(area_Analisi[0], t_Analisi[0], queue_Analisi[0])
+    #queue_data(area_queue, t_queue, queue)
+    #analisi_data(area_Analisi, t_Analisi, queue_Analisi)
+#    print("Analisi: ", sum(index_Analisi))
+#    print("Queue  : ", index_queue)
+#    print("Triage : ", index_triage)
+#    print("Job che hanno fatto esami 1 volta: ", analisi_1_volta)
+#    print("Job che hanno fatto esami 2 volte: ", analisi_2_volte)
+#    print("Job che hanno fatto esami 3 volte: ", analisi_3_volte)
+#    print("Job che hanno fatto esami 4 volte: ", analisi_piu_3)
+    return stat(t_triage, area_triage), stat(t_queue, area_queue), stats(t_Analisi, area_Analisi)
 
 
 def processa_arrivo_triage():
@@ -152,7 +160,7 @@ def reset():
 
 
 if __name__ == "__main__":
-    for i in range (5):
-        print("Simulazione n ", i)
-        simulation()
-        reset()
+    #for i in range (5):
+    print("Simulazione n ", i)
+    print (simulation())
+    reset()
