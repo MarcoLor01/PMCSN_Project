@@ -2,19 +2,32 @@ from controller.TriageController import *
 from controller.QueueController import *
 from controller.ExamsQueueController import *
 from controller.EsamiController import *
-from utility.Rngs import plantSeeds, DEFAULT
-from utility.SimulationUtils import stat, stats
+from utility.SimulationUtils import stat, stats, stat_batch
 
 arrivalTemp = START  # global temp var for getArrival function
-plantSeeds(DEFAULT)
+
+departed_job = 0
+current_batch = 0
+jobs_complete_batch = 0
+delay_times_batch = 0
+service_batch = 0
+wait_time_batch = 0
+delay_times_batch = 0
+service_batch = 0
+wait_time_batch = 0
+delay_times_batch = 0
+service_batch = 0
+wait_time_batch = 0
+
+#plantSeeds(DEFAULT)
 
 
-def simulation(stop = STOP):
-
+def simulation(stop=STOP, batch_size=1.0):
     global number_Analisi, index_Analisi, queue_Analis, analisi_1_volta, analisi_2_volte, analisi_piu_3, analisi_3_volte
     global arrivalTemp
     global number_triage, index_triage, queue_triage
     global number_queue, index_queue, queue
+    reset()
     analisi_1_volta = 0
     analisi_2_volte = 0
     analisi_3_volte = 0
@@ -31,23 +44,42 @@ def simulation(stop = STOP):
         pre_process_analisi(t_Analisi, area_Analisi, number_Analisi, servers_busy_Analisi)
         prox_operazione = next_event(t_triage.current, t_queue.current, t_Analisi)
         switch(prox_operazione, t_triage, t_queue, t_Analisi)
-    t_triage.last = t_queue.last = t_Analisi[0].last = t_Analisi[1].last = t_Analisi[2].last = t_Analisi[3].last = t_Analisi[4].last = t_Analisi[5].last = max_value(t_Analisi, t_triage.last, t_queue.last)
-#     if prox_operazione < INFINITY:
-#         t_triage.last = prox_operazione
-#         t_queue.last = prox_operazione
-#         for i in range(len(t_analisi)):
-#             t_analisi[i].last = prox_operazione
 
-    triage_data_rec(area_Analisi[0], t_Analisi[0], queue_Analisi[0])
+        if batch_size > 1:
+            if departed_job % batch_size == 0:
+                return stat_batch(t_triage, area_triage, ), stat_batch(t_queue, area_queue), stats_batch(t_Analisi, area_Analisi)
+
+                batch_response_times_plan.append(np.mean(response_times_plan[k_pla:k_pla + batch_size]))
+                batch_waiting_times_plan.append(np.mean(waiting_times_plan[k_pla:k_pla + batch_size]))
+                # ρ
+                if last['planning'] > START:
+                    batch_rho_plan.append(np.sum(planning_centre.service[k_pla:k_pla + batch_size]) / (
+                            last['planning'] - first['planning'][1]))
+                    first['planning'][0] = OFF
+
+                k_pla += batch_size
+
+    t_triage.last = t_queue.last = t_Analisi[0].last = t_Analisi[1].last = t_Analisi[2].last = t_Analisi[3].last = \
+        t_Analisi[4].last = t_Analisi[5].last = max_value(t_Analisi, t_triage.last, t_queue.last)
+    #     if prox_operazione < INFINITY:
+    #         t_triage.last = prox_operazione
+    #         t_queue.last = prox_operazione
+    #         for i in range(len(t_analisi)):
+    #             t_analisi[i].last = prox_operazione
+
+    #triage_data_rec(area_Analisi[0], t_Analisi[0], queue_Analisi[0])
+    #triage_data(area_triage, t_triage, queue_triage)
     #queue_data(area_queue, t_queue, queue)
     #analisi_data(area_Analisi, t_Analisi, queue_Analisi)
-#    print("Analisi: ", sum(index_Analisi))
-#    print("Queue  : ", index_queue)
-#    print("Triage : ", index_triage)
-#    print("Job che hanno fatto esami 1 volta: ", analisi_1_volta)
-#    print("Job che hanno fatto esami 2 volte: ", analisi_2_volte)
-#    print("Job che hanno fatto esami 3 volte: ", analisi_3_volte)
-#    print("Job che hanno fatto esami 4 volte: ", analisi_piu_3)
+    print (departed_job)
+    print (index_triage)
+    #    print("Analisi: ", sum(index_Analisi))
+    #    print("Queue  : ", index_queue)
+    #    print("Triage : ", index_triage)
+    #    print("Job che hanno fatto esami 1 volta: ", analisi_1_volta)
+    #    print("Job che hanno fatto esami 2 volte: ", analisi_2_volte)
+    #    print("Job che hanno fatto esami 3 volte: ", analisi_3_volte)
+    #    print("Job che hanno fatto esami 4 volte: ", analisi_piu_3)
     return stat(t_triage, area_triage), stat(t_queue, area_queue), stats(t_Analisi, area_Analisi)
 
 
@@ -77,7 +109,7 @@ def processa_completamento_triage():
 
 
 def processa_completamento_queue():
-    global index_queue, number_queue, analisi_3_volte, analisi_2_volte, analisi_piu_3, analisi_1_volta
+    global index_queue, number_queue, analisi_3_volte, analisi_2_volte, analisi_piu_3, analisi_1_volta, departed_job
 
     index_queue += 1
     number_queue -= 1
@@ -97,7 +129,8 @@ def processa_completamento_queue():
         job_to_analisi.set_lista_analisi(lista_analisi)
         analisi = pass_to_analisi(job_to_analisi, queue_Analisi, t_queue)
         number_Analisi[analisi] += 1
-
+    else:
+        departed_job += 1
 
 def processa_completamento_analisi(index_analisi):
     global number_triage, number_queue
@@ -144,10 +177,11 @@ def switch(prox_operazione, t_triage, t_queue, t_analisi):
 
 
 def reset():
-    global index_triage, index_queue, index_Analisi
+    global index_triage, index_queue, index_Analisi, departed_job
     t_triage.reset()
     area_triage.reset()
     index_triage = 0
+    departed_job =0
 
     t_queue.reset()
     area_queue.reset()
@@ -158,9 +192,18 @@ def reset():
         area_Analisi[i].reset()
         index_Analisi[i] = 0
 
+def scegli_azione():
+    global departed_job
+
+    selectStream(3)
+    if random() > 0.01:
+        return True
+    else:
+        departed_job += 1
+        return False
 
 if __name__ == "__main__":
     #for i in range (5):
     print("Simulazione n ", i)
-    print (simulation())
+    print(simulation())
     reset()

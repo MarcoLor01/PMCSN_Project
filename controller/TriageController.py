@@ -145,13 +145,6 @@ def completion_triage(t, server_busy, queue_t, area):
 
     return job_completed
 
-
-def scegli_azione():
-    selectStream(3)
-    return True
-    #return random() > 0.01
-
-
 def triage_data(area, t, queue_t):
     total_jobs_completed = sum(area.jobs_completed)
     logger.info("STATS FOR TRIAGE")

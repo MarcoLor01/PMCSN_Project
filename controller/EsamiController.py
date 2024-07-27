@@ -158,7 +158,8 @@ def completion_analisi(t1: Time, server_busy1, queue_q1, area1, index1):
         if job_completed.get_codice() == 1:
             area1.wait_time[job_completed.get_codice() - 1] += (t1.current - job_completed.get_arrival_temp())
             area1.jobs_complete_color[job_completed.get_codice() - 1] += 1
-            area1.delay_time[job_completed.get_codice() - 1] += job_completed.get_analisi_time() - job_completed.get_arrival_temp()
+            area1.delay_time[
+                job_completed.get_codice() - 1] += job_completed.get_analisi_time() - job_completed.get_arrival_temp()
         else:
             area1.wait_time[1] += (t1.current - job_completed.get_arrival_temp())
             area1.jobs_complete_color[1] += 1
@@ -173,8 +174,6 @@ def analisi_data(area_a, t_a, queue_a):
     logger.info("ECG = 1, EMOCROMO = 2, TAC = 3, RADIOGRAFIA = 4, ECOGRAFIA = 5, ALTRO = 6")
     for i in range(len(area_a)):
         single_analisi_data(area_a[i], t_a[i], queue_a[i], i)
-
-
 
 
 def probability_analisi(volte_analisi):

@@ -166,3 +166,32 @@ def stats(t: list, area: list):
         delay_times.append(d)
 
     return utilizations, response_times, delay_times
+
+
+def stat_batch(t: Time, area: Track, service, current, jobs_complete, wait_time, delay_times) -> tuple[list[float], list[float], list[float]]:
+    utilization = []
+    response_time = []
+    delay_time = []
+
+    for j in range(len(area.service)):
+        utilization.append((area.service[j] - service) / (t.current - current) if t.current > 0 else 0)
+    for i in range(len(area.jobs_complete_color)):
+        if (area.jobs_complete_color[i] - jobs_complete[i]) != 0:
+            response_time.append((area.wait_time[i]-wait_time[i]) / (area.jobs_complete_color[i] - jobs_complete[i]))
+            delay_time.append((area.delay_time[i]-delay_times[i]) / (area.jobs_complete_color[i] - jobs_complete[i]))
+
+    return utilization, response_time, delay_time
+
+
+def stats_batch(t: list, area: list, service, current, jobs_complete, wait_time, delay_time):
+    utilization = []
+    response_times = []
+    delay_times = []
+    for i in range(len(t)):
+        u, w, d = stat_batch(t[i], area[i], service[i], current[i], jobs_complete[i], wait_time[i], delay_time[i])
+        utilization.append(u)
+        response_times.append(w)
+        delay_times.append(d)
+
+    return utilization, response_times, delay_times
+
