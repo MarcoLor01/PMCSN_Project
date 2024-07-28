@@ -9,7 +9,15 @@ from utility.Parameters import *
 from utility.Utils import *
 
 
-def confidence_interval(alpha, n, l) -> float:
+def confidence_interval(alpha, n, l):
+    res = []
+    l_t = [list(i) for i in zip(*l)]
+    for i in range(len(l_t)):
+        res.append(confidence_interval_iteration(alpha, n, l_t[i]))
+    return res
+
+
+def confidence_interval_iteration(alpha, n, l):
     sigma = np.std(l, ddof=1)
     if n > 1:
         t = idfStudent(n - 1, 1 - alpha / 2)
@@ -168,17 +176,20 @@ def stats(t: list, area: list):
     return utilizations, response_times, delay_times
 
 
-def stat_batch(t: Time, area: Track, service, current, jobs_complete, wait_time, delay_times) -> tuple[list[float], list[float], list[float]]:
+def stat_batch(t: Time, area: Track, service, current, jobs_complete, wait_time, delay_times) -> tuple[
+    list[float], list[float], list[float]]:
     utilization = []
     response_time = []
     delay_time = []
 
     for j in range(len(area.service)):
-        utilization.append((area.service[j] - service) / (t.current - current) if t.current > 0 else 0)
+        #print("AREA.SERVICE: ", area.service[j], "SERVICE: ", service[j])
+        utilization.append((area.service[j] - service[j]) / (t.current - current) if t.current > 0 else 0)
     for i in range(len(area.jobs_complete_color)):
         if (area.jobs_complete_color[i] - jobs_complete[i]) != 0:
-            response_time.append((area.wait_time[i]-wait_time[i]) / (area.jobs_complete_color[i] - jobs_complete[i]))
-            delay_time.append((area.delay_time[i]-delay_times[i]) / (area.jobs_complete_color[i] - jobs_complete[i]))
+            response_time.append((area.wait_time[i] - wait_time[i]) / (area.jobs_complete_color[i] - jobs_complete[i]))
+            delay_time.append((area.delay_time[i] - delay_times[i]) / (area.jobs_complete_color[i] - jobs_complete[i]))
+    #print("UTILIZATION: ", utilization)
 
     return utilization, response_time, delay_time
 
@@ -188,10 +199,9 @@ def stats_batch(t: list, area: list, service, current, jobs_complete, wait_time,
     response_times = []
     delay_times = []
     for i in range(len(t)):
-        u, w, d = stat_batch(t[i], area[i], service[i], current[i], jobs_complete[i], wait_time[i], delay_time[i])
+        u, w, d = stat_batch(t[i], area[i], service[i], current, jobs_complete[i], wait_time[i], delay_time[i])
         utilization.append(u)
         response_times.append(w)
         delay_times.append(d)
 
     return utilization, response_times, delay_times
-

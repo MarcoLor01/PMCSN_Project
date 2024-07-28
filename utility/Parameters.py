@@ -3,7 +3,7 @@ import numpy as np
 # Costanti per la simulazione del sistema
 START = 0.0  # initial time */
 STOP = 7 * 1440.0  # 10080 terminal time */
-
+#STOP = 200000
 # True = Exponential  False = Truncate G.
 MODALITY = False
 

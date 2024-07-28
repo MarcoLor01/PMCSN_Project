@@ -303,3 +303,6 @@ def simulation(stop, batch_size=1.0) -> list:
 
 
     return [response_times_monitor, waiting_times_monitor, response_times_plan, waiting_times_plan, rho_mon_1, rho_mon_2, rho_mon_3, rho_pla, batch_stats, response_times_monitor_1]
+
+
+

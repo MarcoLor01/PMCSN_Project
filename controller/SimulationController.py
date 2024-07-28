@@ -2,28 +2,18 @@ from controller.TriageController import *
 from controller.QueueController import *
 from controller.ExamsQueueController import *
 from controller.EsamiController import *
-from utility.SimulationUtils import stat, stats, stat_batch
+from utility.SimulationUtils import stat, stats, stat_batch, stats_batch
 
 arrivalTemp = START  # global temp var for getArrival function
 
 departed_job = 0
-current_batch = 0
-jobs_complete_batch = 0
-delay_times_batch = 0
-service_batch = 0
-wait_time_batch = 0
-delay_times_batch = 0
-service_batch = 0
-wait_time_batch = 0
-delay_times_batch = 0
-service_batch = 0
-wait_time_batch = 0
+
 
 #plantSeeds(DEFAULT)
 
 
 def simulation(stop=STOP, batch_size=1.0):
-    global number_Analisi, index_Analisi, queue_Analis, analisi_1_volta, analisi_2_volte, analisi_piu_3, analisi_3_volte
+    global number_Analisi, index_Analisi, queue_Analis, analisi_1_volta, analisi_2_volte, analisi_piu_3, analisi_3_volte, departed_job
     global arrivalTemp
     global number_triage, index_triage, queue_triage
     global number_queue, index_queue, queue
@@ -32,6 +22,39 @@ def simulation(stop=STOP, batch_size=1.0):
     analisi_2_volte = 0
     analisi_3_volte = 0
     analisi_piu_3 = 0
+    NUMERO_CODICI = 5
+    NUMERO_CODE_Q = 7
+    NUMERO_CODE_A = 2
+    current_batch = 0
+
+    jobs_complete_batch_triage = [0.0] * NUMERO_CODICI
+    delay_times_batch_triage = [0.0] * NUMERO_CODICI
+    service_batch_triage = [0.0] * NUMERO_DI_SERVER_TRIAGE
+    wait_time_batch_triage = [0.0] * NUMERO_CODICI
+
+    jobs_complete_batch_queue = [0.0] * NUMERO_CODE_Q
+    delay_times_batch_queue = [0.0] * NUMERO_CODE_Q
+    service_batch_queue = [0.0] * NUMERO_DI_SERVER_QUEUE
+    wait_time_batch_queue = [0.0] * NUMERO_CODE_Q
+
+    jobs_complete_batch_analisi = [[0.0] * NUMERO_CODE_A] * NUMERO_DI_ANALISI
+    delay_times_batch_analisi = [[0.0] * NUMERO_CODE_A] * NUMERO_DI_ANALISI
+    service_batch_analisi = [0.0] * NUMERO_DI_ANALISI
+    for analisi in range(NUMERO_DI_ANALISI):
+        service_batch_analisi[analisi] = [0.0] * NUMERO_SERVER_ANALISI[analisi]
+
+    wait_time_batch_analisi = [[0.0] * NUMERO_CODE_A] * NUMERO_DI_ANALISI
+
+    utilization_batch_triage = []
+    response_batch_triage = []
+    delay_batch_triage = []
+    utilization_batch_queue = []
+    response_batch_queue = []
+    delay_batch_queue = []
+    utilization_batch_analisi = []
+    response_batch_analisi = []
+    delay_batch_analisi = []
+
     arrivalTemp = START
     arrivalTemp = arrivalTemp + GetArrival()
     init_triage(arrivalTemp)
@@ -46,19 +69,48 @@ def simulation(stop=STOP, batch_size=1.0):
         switch(prox_operazione, t_triage, t_queue, t_Analisi)
 
         if batch_size > 1:
-            if departed_job % batch_size == 0:
-                return stat_batch(t_triage, area_triage, ), stat_batch(t_queue, area_queue), stats_batch(t_Analisi, area_Analisi)
+            if departed_job % batch_size == 0 and departed_job != 0:
 
-                batch_response_times_plan.append(np.mean(response_times_plan[k_pla:k_pla + batch_size]))
-                batch_waiting_times_plan.append(np.mean(waiting_times_plan[k_pla:k_pla + batch_size]))
-                # ρ
-                if last['planning'] > START:
-                    batch_rho_plan.append(np.sum(planning_centre.service[k_pla:k_pla + batch_size]) / (
-                            last['planning'] - first['planning'][1]))
-                    first['planning'][0] = OFF
+                res_t = stat_batch(t_triage, area_triage, service_batch_triage, current_batch,
+                                   jobs_complete_batch_triage, wait_time_batch_triage, delay_times_batch_triage)
+                utilization_batch_triage += res_t[0]
+                response_batch_triage += res_t[1]
+                delay_batch_triage += res_t[2]
 
-                k_pla += batch_size
+                res_q = stat_batch(t_queue, area_queue, service_batch_queue, current_batch, jobs_complete_batch_queue,
+                                   wait_time_batch_queue, delay_times_batch_queue)
+                utilization_batch_queue += res_q[0]
+                response_batch_queue += res_q[1]
+                delay_batch_queue += res_q[2]
 
+                res_a = stats_batch(t_Analisi, area_Analisi, service_batch_analisi, current_batch,
+                                    jobs_complete_batch_analisi, wait_time_batch_analisi, delay_times_batch_analisi)
+                utilization_batch_analisi += res_a[0]
+                response_batch_analisi += res_a[1]
+                delay_batch_analisi += res_a[2]
+
+                current_batch = t_queue.current
+
+                jobs_complete_batch_triage = area_triage.jobs_complete_color.copy()
+                wait_time_batch_triage = area_triage.wait_time.copy()
+                service_batch_triage = area_triage.service.copy()
+                delay_times_batch_triage = area_triage.delay_time.copy()
+
+                jobs_complete_batch_queue = area_queue.jobs_complete_color.copy()
+                wait_time_batch_queue = area_queue.wait_time.copy()
+                service_batch_queue = area_queue.service.copy()
+                delay_times_batch_queue = area_queue.delay_time.copy()
+
+                for i in range(len(area_Analisi)):
+                    jobs_complete_batch_analisi[i] = area_Analisi[i].jobs_complete_color.copy()
+                    wait_time_batch_analisi[i] = area_Analisi[i].wait_time.copy()
+                    service_batch_analisi[i] = area_Analisi[i].service.copy()
+                    delay_times_batch_analisi[i] = area_Analisi[i].delay_time.copy()
+
+                departed_job = 0
+    batch_res = [[utilization_batch_triage, response_batch_triage, delay_batch_triage],
+                 [utilization_batch_queue, response_batch_queue, delay_batch_queue],
+                 [utilization_batch_analisi, response_batch_analisi, delay_batch_analisi]]
     t_triage.last = t_queue.last = t_Analisi[0].last = t_Analisi[1].last = t_Analisi[2].last = t_Analisi[3].last = \
         t_Analisi[4].last = t_Analisi[5].last = max_value(t_Analisi, t_triage.last, t_queue.last)
     #     if prox_operazione < INFINITY:
@@ -71,8 +123,7 @@ def simulation(stop=STOP, batch_size=1.0):
     #triage_data(area_triage, t_triage, queue_triage)
     #queue_data(area_queue, t_queue, queue)
     #analisi_data(area_Analisi, t_Analisi, queue_Analisi)
-    print (departed_job)
-    print (index_triage)
+
     #    print("Analisi: ", sum(index_Analisi))
     #    print("Queue  : ", index_queue)
     #    print("Triage : ", index_triage)
@@ -80,7 +131,7 @@ def simulation(stop=STOP, batch_size=1.0):
     #    print("Job che hanno fatto esami 2 volte: ", analisi_2_volte)
     #    print("Job che hanno fatto esami 3 volte: ", analisi_3_volte)
     #    print("Job che hanno fatto esami 4 volte: ", analisi_piu_3)
-    return stat(t_triage, area_triage), stat(t_queue, area_queue), stats(t_Analisi, area_Analisi)
+    return stat(t_triage, area_triage), stat(t_queue, area_queue), stats(t_Analisi, area_Analisi), batch_res
 
 
 def processa_arrivo_triage():
@@ -132,6 +183,7 @@ def processa_completamento_queue():
     else:
         departed_job += 1
 
+
 def processa_completamento_analisi(index_analisi):
     global number_triage, number_queue
     index_Analisi[index_analisi] += 1
@@ -181,7 +233,7 @@ def reset():
     t_triage.reset()
     area_triage.reset()
     index_triage = 0
-    departed_job =0
+    departed_job = 0
 
     t_queue.reset()
     area_queue.reset()
@@ -191,6 +243,7 @@ def reset():
         t_Analisi[i].reset()
         area_Analisi[i].reset()
         index_Analisi[i] = 0
+
 
 def scegli_azione():
     global departed_job
@@ -202,8 +255,12 @@ def scegli_azione():
         departed_job += 1
         return False
 
+
 if __name__ == "__main__":
     #for i in range (5):
-    print("Simulazione n ", i)
-    print(simulation())
-    reset()
+    batch_size = 940
+    #
+    simulation(STOP, batch_size)
+    #print("Simulazione n ", i)
+    #reset()
+    #print(simulation(STOP))
