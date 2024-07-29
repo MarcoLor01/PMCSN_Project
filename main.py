@@ -10,7 +10,7 @@ from utility.Parameters import *
 from utility.Rngs import plantSeeds, DEFAULT
 
 NUMERO_CODICI = 5
-NUMERO_ANALISI = 7
+NUMERO_ANALISI = 6
 
 RESPONSE_TIME_TRIAGE = []
 RESPONSE_TIME_QUEUE = []
@@ -61,6 +61,7 @@ def infinite(seed, stop, batch_size=1.0):
         RHO_TRIAGE.extend(utilization_triage)
         RHO_QUEUE.extend(utilization_queue)
         RHO_ANALISI.extend(utilization_analisi)
+        #print(DELAY_TIME_QUEUE)
 
         write_on_csv(DELAY_TIME_QUEUE)
 
@@ -79,12 +80,11 @@ def output_finite(n):
         utilization_analisi = []
         #print("Rpt: ", RESPONSE_TIME_TRIAGE)
         #print("RPT: ", response_time_triage)
-
+        print (RHO_ANALISI)
         for i in range(len(RESPONSE_TIME_ANALISI)):
             response_times_analisi.append(confidence_interval(ALPHA, n, RESPONSE_TIME_ANALISI[i]))
             utilization_analisi.append(confidence_interval(ALPHA, n, RHO_ANALISI[i]))
         delay_t = [list(i) for i in zip(*DELAY_TIME_QUEUE)]
-
 
         for i in range(len(delay_t)):
             print(f"E[Tq] per codice: {i} = {np.mean(delay_t[i])} +/- {delay_times_queue[i]}")
@@ -94,16 +94,93 @@ def output_finite(n):
     #       print(f"rho1 = {np.mean(RHO_MONITOR_1)} +/- {rho_man1_interval}")
     #       print(f"rho2 = {np.mean(RHO_MONITOR_2)} +/- {rho_man2_interval}")
     #       print(f"rho3 = {np.mean(RHO_MONITOR_3)} +/- {rho_man3_interval}")
-    #               print("Plan Centre")
+    #       print("Plan Centre")
     #       print(f"E[Tq] = {np.mean(WAITING_TIME_PLAN)} +/- {waiting_time_plan_interval}")
     #       print(f"E[Ts] = {np.mean(RESPONSE_TIME_PLAN)} +/- {response_time_plan_interval}")
     #       print(f"rho = {np.mean(RHO_PLAN)} +/- {rho_pla_interval}")
+
     except Exception as e:
         print(f"An error occurred during execution: {e}")
 
 
+def media_inf(vettore, num_code=7):
+    if len(vettore) % num_code != 0:
+        raise ValueError("La lunghezza del vettore deve essere divisibile per il numero di colori")
+    sottovettori = [[] for _ in range(num_code)]
+
+    for i, valore in enumerate(vettore):
+        cod_index = i % num_code
+        sottovettori[cod_index].append(valore)
+
+    medie = [np.mean(sottovettore) for sottovettore in sottovettori]
+
+    return medie
+
+
 def output_infinite():
+    media_response_triage = media_inf(RESPONSE_TIME_TRIAGE, num_code=NUMERO_CODICI)
+
+    media_delay_queue = media_inf(DELAY_TIME_QUEUE)
+    media_response_queue = media_inf(RESPONSE_TIME_QUEUE)
+    #print("pre: ", RESPONSE_TIME_ANALISI)
+
+    res = suddividi_vettore(DELAY_TIME_QUEUE, 7)
+    utilization_analisi = []
+    el = suddividi_vettore_analisi(RHO_ANALISI, 6)
+
+    for i in range(len(el)):
+        #response_times_analisi.append(confidence_interval(ALPHA, len(el), el[i]))
+        utilization_analisi.append(confidence_interval(ALPHA, len(el), el[i]))
+    print ("ua", utilization_analisi)
+
+    #print("post: ", res)
+    media_response_analisi = media_analisi_inf(RESPONSE_TIME_ANALISI, 6)
+    media_rho_triage = media_inf(RHO_TRIAGE, NUMERO_DI_SERVER_TRIAGE)
+    media_rho_queue = media_inf(RHO_QUEUE, NUMERO_DI_SERVER_QUEUE)
+    media_rho_analisi = media_analisi_inf(RHO_ANALISI, 6)
+    delay_times_queue = confidence_interval(ALPHA, len(res), res)
+    print(delay_times_queue)
     pass
+
+
+def suddividi_vettore(vettore, n_elementi):
+    if len(vettore) % n_elementi != 0:
+        raise ValueError("La lunghezza del vettore non è divisibile per il numero di elementi per sottovettore.")
+
+    sottovettori = [vettore[i:i + n_elementi] for i in range(0, len(vettore), n_elementi)]
+    return sottovettori
+
+
+def suddividi_vettore_analisi(vettore, n_elementi):
+
+    if len(vettore) % n_elementi != 0:
+        raise ValueError("La lunghezza del vettore non è divisibile per il numero di elementi per sottovettore.")
+
+    sottovettori = [vettore[i:i + n_elementi] for i in range(0, len(vettore), n_elementi)]
+    return sottovettori
+
+
+def trasforma_analisi(vettori, n_gruppi):
+    # Inizializza le liste per raccogliere gli elementi delle diverse posizioni nei gruppi
+    gruppi = [[] for _ in range(n_gruppi)]
+
+    # Distribuisci i vettori nei rispettivi gruppi
+    for i, vettore in enumerate(vettori):
+        gruppo_idx = i % n_gruppi
+        gruppi[gruppo_idx].append(vettore)
+
+    return gruppi
+
+
+def media_analisi_inf(vettori, n_gruppi):
+    gruppi = trasforma_analisi(vettori, n_gruppi)
+    # Calcola la media per ciascuna posizione nei gruppi
+    medie = []
+    for gruppo in gruppi:
+        medie_gruppo = np.mean(gruppo, axis=0)
+        medie.append(medie_gruppo)
+
+    return medie
 
 
 if __name__ == "__main__":
