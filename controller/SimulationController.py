@@ -54,7 +54,6 @@ def simulation(stop=STOP, batch_size=1.0):
     utilization_batch_analisi = []
     response_batch_analisi = []
     delay_batch_analisi = []
-
     arrivalTemp = START
     arrivalTemp = arrivalTemp + GetArrival()
     init_triage(arrivalTemp)
@@ -70,7 +69,6 @@ def simulation(stop=STOP, batch_size=1.0):
 
         if batch_size > 1:
             if departed_job % batch_size == 0 and departed_job != 0:
-
                 res_t = stat_batch(t_triage, area_triage, service_batch_triage, current_batch,
                                    jobs_complete_batch_triage, wait_time_batch_triage, delay_times_batch_triage)
                 utilization_batch_triage += res_t[0]

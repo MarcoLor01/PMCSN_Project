@@ -1,11 +1,6 @@
-import sys
 from controller.SimulationController import simulation
 from utility.SimulationUtils import write_on_csv, confidence_interval
 import argparse
-import numpy as np
-import csv
-import os
-import matplotlib.pyplot as plt
 from utility.Parameters import *
 from utility.Rngs import plantSeeds, DEFAULT
 
@@ -40,6 +35,7 @@ def finite(seed, n, stop):
             RHO_TRIAGE.append(utilization_triage)
             RHO_QUEUE.append(utilization_queue)
             RHO_ANALISI.append(utilization_analisi)
+
         except Exception as e:
             print(f"An error occurred during execution: {e}")
 
@@ -71,6 +67,17 @@ def infinite(seed, stop, batch_size=1.0):
 
 def output_finite(n):
     try:
+        new_utilization_a = []
+        new_response_a = []
+        # Itera attraverso la lista originale per estrarre i valori
+        for i in range(len(RHO_ANALISI[0])):
+            row = [RHO_ANALISI[j][i] for j in range(len(RHO_ANALISI))]
+            new_utilization_a.append(row)
+
+        for i in range(len(RESPONSE_TIME_ANALISI[0])):
+            row = [RESPONSE_TIME_ANALISI[j][i] for j in range(len(RESPONSE_TIME_ANALISI))]
+            new_response_a.append(row)
+
         response_time_triage = confidence_interval(ALPHA, n, RESPONSE_TIME_TRIAGE)
         utilization_triage = confidence_interval(ALPHA, n, RHO_TRIAGE)
         response_time_queue = confidence_interval(ALPHA, n, RESPONSE_TIME_QUEUE)
@@ -78,26 +85,40 @@ def output_finite(n):
         delay_times_queue = confidence_interval(ALPHA, n, DELAY_TIME_QUEUE)
         response_times_analisi = []
         utilization_analisi = []
-        #print("Rpt: ", RESPONSE_TIME_TRIAGE)
-        #print("RPT: ", response_time_triage)
-        print (RHO_ANALISI)
-        for i in range(len(RESPONSE_TIME_ANALISI)):
-            response_times_analisi.append(confidence_interval(ALPHA, n, RESPONSE_TIME_ANALISI[i]))
-            utilization_analisi.append(confidence_interval(ALPHA, n, RHO_ANALISI[i]))
-        delay_t = [list(i) for i in zip(*DELAY_TIME_QUEUE)]
 
-        for i in range(len(delay_t)):
-            print(f"E[Tq] per codice: {i} = {np.mean(delay_t[i])} +/- {delay_times_queue[i]}")
+        for i in range(len(new_response_a)):
+            response_times_analisi.append(confidence_interval(ALPHA, n, new_response_a[i]))
+        for i in range(len(new_utilization_a)):
+            utilization_analisi.append(confidence_interval(ALPHA, n, new_utilization_a[i]))
 
-    #       print(f"E[Ts] = {np.mean(RESPONSE_TIME_MONITOR)} +/- {response_time_monitor_interval}")
-    #       print(f"E[Ts1] = {np.mean(RESPONSE_TIME_MONITOR1)} +/- {response_time_monitor1_interval}")
-    #       print(f"rho1 = {np.mean(RHO_MONITOR_1)} +/- {rho_man1_interval}")
-    #       print(f"rho2 = {np.mean(RHO_MONITOR_2)} +/- {rho_man2_interval}")
-    #       print(f"rho3 = {np.mean(RHO_MONITOR_3)} +/- {rho_man3_interval}")
-    #       print("Plan Centre")
-    #       print(f"E[Tq] = {np.mean(WAITING_TIME_PLAN)} +/- {waiting_time_plan_interval}")
-    #       print(f"E[Ts] = {np.mean(RESPONSE_TIME_PLAN)} +/- {response_time_plan_interval}")
-    #       print(f"rho = {np.mean(RHO_PLAN)} +/- {rho_pla_interval}")
+        response_a = []
+        utilization_a = []
+        delay_q = [list(i) for i in zip(*DELAY_TIME_QUEUE)]
+        response_q = [list(i) for i in zip(*RESPONSE_TIME_QUEUE)]
+        utilization_q = [list(i) for i in zip(*RHO_QUEUE)]
+        utilization_t = [list(i) for i in zip(*RHO_TRIAGE)]
+        response_t = [list(i) for i in zip(*RESPONSE_TIME_TRIAGE)]
+        for j in range(len(new_utilization_a)):
+            utilization_a.append([list(i) for i in zip(*new_utilization_a[j])])
+        for j in range(len(new_response_a)):
+            response_a.append([list(i) for i in zip(*new_response_a[j])])
+
+        for i in range(len(delay_q)):
+            print(f"E[Tq] per codice: {i} = {np.mean(delay_q[i])} +/- {delay_times_queue[i]}")
+        for i in range(len(response_q)):
+            print(f"E[Ts] per codice: {i} = {np.mean(response_q[i])} +/- {response_time_queue[i]}")
+        for i in range(len(utilization_q)):
+            print(f"E[Rho] per server: {i} = {np.mean(utilization_q[i])} +/- {utilization_queue[i]}")
+        for i in range(len(response_t)):
+            print(f"E[Ts] per codice: {i} = {np.mean(response_t[i])} +/- {response_time_triage[i]}")
+        for i in range(len(utilization_t)):
+            print(f"E[Rho] per server: {i} = {np.mean(utilization_t[i])} +/- {utilization_triage[i]}")
+        for j in range(len(response_a)):
+            for i in range(len(response_a[j])):
+                print(f"E[Ts] per codice: {i} = {np.mean(response_a[j][i])} +/- {response_times_analisi[j][i]}")
+        for j in range(len(utilization_a)):
+            for i in range(len(utilization_a[j])):
+                print(f"E[Rho] per server: {i} = {np.mean(utilization_a[j][i])} +/- {utilization_analisi[j][i]}")
 
     except Exception as e:
         print(f"An error occurred during execution: {e}")
@@ -119,29 +140,64 @@ def media_inf(vettore, num_code=7):
 
 def output_infinite():
     media_response_triage = media_inf(RESPONSE_TIME_TRIAGE, num_code=NUMERO_CODICI)
-
+    media_rho_triage = media_inf(RHO_TRIAGE, num_code=NUMERO_DI_SERVER_TRIAGE)
     media_delay_queue = media_inf(DELAY_TIME_QUEUE)
     media_response_queue = media_inf(RESPONSE_TIME_QUEUE)
-    #print("pre: ", RESPONSE_TIME_ANALISI)
-
-    res = suddividi_vettore(DELAY_TIME_QUEUE, 7)
-    utilization_analisi = []
-    el = suddividi_vettore_analisi(RHO_ANALISI, 6)
-
-    for i in range(len(el)):
-        #response_times_analisi.append(confidence_interval(ALPHA, len(el), el[i]))
-        utilization_analisi.append(confidence_interval(ALPHA, len(el), el[i]))
-    print ("ua", utilization_analisi)
-
-    #print("post: ", res)
+    media_rho_queue = media_inf(RHO_QUEUE, num_code=NUMERO_DI_SERVER_QUEUE)
     media_response_analisi = media_analisi_inf(RESPONSE_TIME_ANALISI, 6)
-    media_rho_triage = media_inf(RHO_TRIAGE, NUMERO_DI_SERVER_TRIAGE)
-    media_rho_queue = media_inf(RHO_QUEUE, NUMERO_DI_SERVER_QUEUE)
     media_rho_analisi = media_analisi_inf(RHO_ANALISI, 6)
-    delay_times_queue = confidence_interval(ALPHA, len(res), res)
-    print(delay_times_queue)
-    pass
 
+    delay_q_vect = suddividi_vettore(DELAY_TIME_QUEUE, 7)
+    response_q_vect = suddividi_vettore(RESPONSE_TIME_QUEUE, 7)
+    response_t_vect = suddividi_vettore(RESPONSE_TIME_TRIAGE, 5)
+    rho_t_vect = suddividi_vettore(RHO_TRIAGE, NUMERO_DI_SERVER_TRIAGE)
+    rho_q_vect = suddividi_vettore(RHO_QUEUE, NUMERO_DI_SERVER_QUEUE)
+
+    delay_times_queue = confidence_interval(ALPHA, len(delay_q_vect), delay_q_vect)
+    response_time_queue = confidence_interval(ALPHA, len(response_q_vect), response_q_vect)
+    utilization_queue = confidence_interval(ALPHA, len(rho_q_vect), rho_q_vect)
+    utilization_triage = confidence_interval(ALPHA, len(rho_t_vect), rho_t_vect)
+    response_time_triage = confidence_interval(ALPHA, len(response_t_vect), response_t_vect)
+
+    new_utilization_a = []
+    new_response_a = []
+    utilizations_analisi = suddividi_vettore_analisi(RHO_ANALISI, 6)
+    response_analisi = suddividi_vettore_analisi(RESPONSE_TIME_ANALISI, 6)
+
+    # Itera attraverso la lista originale per estrarre i valori
+    for i in range(len(utilizations_analisi[0])):
+        row = [utilizations_analisi[j][i] for j in range(len(utilizations_analisi))]
+        new_utilization_a.append(row)
+
+    for i in range(len(response_analisi[0])):
+        row = [response_analisi[j][i] for j in range(len(response_analisi))]
+        new_response_a.append(row)
+
+    response_times_analisi = []
+    utilization_analisi = []
+
+    for i in range(len(new_response_a)):
+        response_times_analisi.append(confidence_interval(ALPHA, len(new_response_a[i]), new_response_a[i]))
+    for i in range(len(new_utilization_a)):
+        utilization_analisi.append(confidence_interval(ALPHA, len(new_utilization_a[i]), new_utilization_a[i]))
+
+    for i in range(len(media_delay_queue)):
+        print(f"E[Tq] per codice: {i} = {media_delay_queue[i]} +/- {delay_times_queue[i]}")
+    for i in range(len(media_response_queue)):
+        print(f"E[Ts] per codice: {i} = {media_response_queue[i]} +/- {response_time_queue[i]}")
+    for i in range(len(media_rho_queue)):
+        print(f"E[Rho] per server: {i} = {media_rho_queue[i]} +/- {utilization_queue[i]}")
+    for i in range(len(media_response_triage)):
+        print(f"E[Ts] per codice: {i} = {media_response_triage[i]} +/- {response_time_triage[i]}")
+    for i in range(len(media_rho_triage)):
+        print(f"E[Rho] per server: {i} = {media_rho_triage[i]} +/- {utilization_triage[i]}")
+
+    for j in range(len(media_response_analisi)):
+        for i in range(len(media_response_analisi[j])):
+            print(f"E[Ts] per codice: {i} = {media_response_analisi[j][i]} +/- {response_times_analisi[j][i]}")
+    for j in range(len(media_rho_analisi)):
+        for i in range(len(media_rho_analisi[j])):
+            print(f"E[Rho] per server: {i} = {media_rho_analisi[j][i]} +/- {utilization_analisi[j][i]}")
 
 def suddividi_vettore(vettore, n_elementi):
     if len(vettore) % n_elementi != 0:
@@ -152,7 +208,6 @@ def suddividi_vettore(vettore, n_elementi):
 
 
 def suddividi_vettore_analisi(vettore, n_elementi):
-
     if len(vettore) % n_elementi != 0:
         raise ValueError("La lunghezza del vettore non è divisibile per il numero di elementi per sottovettore.")
 
