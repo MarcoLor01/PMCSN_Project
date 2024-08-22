@@ -1,5 +1,9 @@
-from controller.SimulationController import simulation
-from utility.SimulationUtils import write_on_csv, confidence_interval
+import time
+
+import numpy as np
+
+from controller.SimulationController import simulation, violation
+from utility.SimulationUtils import write_on_csv, confidence_interval, cumulative_mean, plot_cumulative_means
 import argparse
 from utility.Parameters import *
 from utility.Rngs import plantSeeds, DEFAULT
@@ -38,6 +42,7 @@ def finite(seed, n, stop):
 
         except Exception as e:
             print(f"An error occurred during execution: {e}")
+        print(DELAY_TIME_QUEUE)
 
 
 def infinite(seed, stop, batch_size=1.0):
@@ -57,7 +62,6 @@ def infinite(seed, stop, batch_size=1.0):
         RHO_TRIAGE.extend(utilization_triage)
         RHO_QUEUE.extend(utilization_queue)
         RHO_ANALISI.extend(utilization_analisi)
-        #print(DELAY_TIME_QUEUE)
 
         write_on_csv(DELAY_TIME_QUEUE)
 
@@ -93,6 +97,7 @@ def output_finite(n):
 
         response_a = []
         utilization_a = []
+        mean = []
         delay_q = [list(i) for i in zip(*DELAY_TIME_QUEUE)]
         response_q = [list(i) for i in zip(*RESPONSE_TIME_QUEUE)]
         utilization_q = [list(i) for i in zip(*RHO_QUEUE)]
@@ -103,6 +108,20 @@ def output_finite(n):
         for j in range(len(new_response_a)):
             response_a.append([list(i) for i in zip(*new_response_a[j])])
 
+        for i in range(len(delay_q)):
+            mean.append(cumulative_mean(delay_q[i]))
+
+        for i in range(len(violation)):
+            if len(violation[i]) != 0:
+                print(np.mean(violation[i]), "su ", len(violation[i]), "campioni, per il codice ", i)
+            else:
+                print("Il codice: ", i, " non ha sforamenti")
+
+        for i in range(len(mean)):
+            plot_cumulative_means(mean[i], np.mean(delay_q[i]),
+                                  'Cumulative Mean Delay Time (Queue)' + str(i),
+                                  'Cumulative Mean Response Time over Batches (Monitor Centre)',
+                                  '/finite/cumulative_delay_time_queue_' + str(i))
         for i in range(len(delay_q)):
             print(f"E[Tq] per codice: {i} = {np.mean(delay_q[i])} +/- {delay_times_queue[i]}")
         for i in range(len(response_q)):
@@ -146,12 +165,29 @@ def output_infinite():
     media_rho_queue = media_inf(RHO_QUEUE, num_code=NUMERO_DI_SERVER_QUEUE)
     media_response_analisi = media_analisi_inf(RESPONSE_TIME_ANALISI, 6)
     media_rho_analisi = media_analisi_inf(RHO_ANALISI, 6)
-
     delay_q_vect = suddividi_vettore(DELAY_TIME_QUEUE, 7)
     response_q_vect = suddividi_vettore(RESPONSE_TIME_QUEUE, 7)
     response_t_vect = suddividi_vettore(RESPONSE_TIME_TRIAGE, 5)
     rho_t_vect = suddividi_vettore(RHO_TRIAGE, NUMERO_DI_SERVER_TRIAGE)
     rho_q_vect = suddividi_vettore(RHO_QUEUE, NUMERO_DI_SERVER_QUEUE)
+
+    mean = []
+    delay_q = [list(i) for i in zip(*delay_q_vect)]
+
+    for i in range(len(delay_q)):
+        mean.append(cumulative_mean(delay_q[i]))
+
+    for i in range(len(violation)):
+        if len(violation[i]) != 0:
+            print(np.mean(violation[i]), "su ", len(violation[i]), "campioni, per il codice ", i)
+        else:
+            print("Il codice: ", i, " non ha sforamenti")
+
+    for i in range(len(mean)):
+        plot_cumulative_means(mean[i], media_delay_queue[i],
+                              'Cumulative Mean Delay Time (Queue)' + str(i),
+                              'Cumulative Mean Response Time over Batches (Monitor Centre)',
+                              '/infinite/cumulative_delay_time_queue_' + str(i))
 
     delay_times_queue = confidence_interval(ALPHA, len(delay_q_vect), delay_q_vect)
     response_time_queue = confidence_interval(ALPHA, len(response_q_vect), response_q_vect)
@@ -198,6 +234,7 @@ def output_infinite():
     for j in range(len(media_rho_analisi)):
         for i in range(len(media_rho_analisi[j])):
             print(f"E[Rho] per server: {i} = {media_rho_analisi[j][i]} +/- {utilization_analisi[j][i]}")
+
 
 def suddividi_vettore(vettore, n_elementi):
     if len(vettore) % n_elementi != 0:
@@ -267,97 +304,7 @@ if __name__ == "__main__":
         output_infinite()
     else:
         raise Exception("Argomento dei flag non valido")
-
-#    if sys.argv[2] == "finite":
-#
-#
-#    elif sys.argv[2] == "infinite":
-#        stop = 2000000.0
-#        batch_size = 128
-#
-#        infinite(SEED, stop, batch_size=batch_size)
-#
-#        # response_time_monitor_mean: Provided no points are discarded,                                           */
-#        # the “mean of the means” is the same as the “grand sample mean”                                          */
-#        response_time_monitor_mean = np.mean(RESPONSE_TIME_MONITOR)
-#        response_time_monitor_interval = confidence_interval(ALPHA, len(RESPONSE_TIME_MONITOR), RESPONSE_TIME_MONITOR)
-#
-#        response_time_monitor1_mean = np.mean(RESPONSE_TIME_MONITOR1)
-#        response_time_monitor1_interval = confidence_interval(ALPHA, len(RESPONSE_TIME_MONITOR1),
-#                                                              RESPONSE_TIME_MONITOR1)
-#
-#        waiting_time_monitor_mean = np.mean(WAITING_TIME_MONITOR)
-#        waiting_time_monitor_interval = confidence_interval(ALPHA, len(WAITING_TIME_MONITOR), WAITING_TIME_MONITOR)
-#
-#        response_time_plan_mean = np.mean(RESPONSE_TIME_PLAN)
-#        response_time_plan_interval = confidence_interval(ALPHA, len(RESPONSE_TIME_PLAN), RESPONSE_TIME_PLAN)
-#
-#        waiting_time_plan_mean = np.mean(WAITING_TIME_PLAN)
-#        waiting_time_plan_interval = confidence_interval(ALPHA, len(WAITING_TIME_PLAN), WAITING_TIME_PLAN)
-#
-#        rho_man1_mean = np.mean(RHO_MONITOR_1)
-#        rho_man1_interval = confidence_interval(ALPHA, len(RHO_MONITOR_1), RHO_MONITOR_1)
-#        rho_man2_mean = np.mean(RHO_MONITOR_2)
-#        rho_man2_interval = confidence_interval(ALPHA, len(RHO_MONITOR_2), RHO_MONITOR_2)
-#        rho_man3_mean = np.mean(RHO_MONITOR_3)
-#        rho_man3_interval = confidence_interval(ALPHA, len(RHO_MONITOR_3), RHO_MONITOR_3)
-#        rho_plan_mean = np.mean(RHO_PLAN)
-#        rho_plan_interval = confidence_interval(ALPHA, len(RHO_PLAN), RHO_PLAN)
-#
-#        print("Monitor Centre")
-#        print(f"E[Tq] = {waiting_time_monitor_mean} +/- {waiting_time_monitor_interval}")
-#        print(f"E[Ts] = {response_time_monitor_mean} +/- {response_time_monitor_interval}")
-#        print(f"E[Ts1] = {response_time_monitor1_mean} +/- {response_time_monitor1_interval}")
-#        print(f"rho_1 = {rho_man1_mean} +/- {rho_man1_interval}")
-#        print(f"rho_2 = {rho_man2_mean} +/- {rho_man2_interval}")
-#        print(f"rho_3 = {rho_man3_mean} +/- {rho_man3_interval}")
-#
-#        print("Plan Centre")
-#        print(f"E[Tq] = {waiting_time_plan_mean} +/- {waiting_time_plan_interval}")
-#        print(f"E[Ts] = {response_time_plan_mean} +/- {response_time_plan_interval}")
-#        print(f"rho = {rho_plan_mean} +/- {rho_plan_interval}")
-#
-#        # Compute cumulative means
-#        cumulative_response_time_monitor = cumulative_mean(RESPONSE_TIME_MONITOR)
-#        cumulative_response_time1_monitor = cumulative_mean(RESPONSE_TIME_MONITOR1)
-#        cumulative_waiting_time_monitor = cumulative_mean(WAITING_TIME_MONITOR)
-#        cumulative_response_time_plan = cumulative_mean(RESPONSE_TIME_PLAN)
-#        cumulative_waiting_time_plan = cumulative_mean(WAITING_TIME_PLAN)
-#
-#        # Plot for QoS1
-#        values = (np.array(cumulative_response_time_monitor) + np.array(cumulative_response_time_plan)).tolist()
-#        plots.plot_qos1_base(values)
-#
-#        # Plot for QoS2
-#        min_length = min(len(cumulative_response_time1_monitor), len(cumulative_response_time_plan))
-#        array1 = np.array(cumulative_response_time1_monitor[:min_length])
-#        array2 = np.array(cumulative_response_time_plan[:min_length])
-#        values = (np.array(array1) + np.array(array2)).tolist()
-#        plots.plot_qos2_base(values)
-#
-#        # Plot cumulative means for Monitor area
-#        plot_cumulative_means(cumulative_response_time_monitor, response_time_monitor_mean,
-#                              'Cumulative Mean Response Time (Monitor)',
-#                              'Cumulative Mean Response Time over Batches (Monitor Centre)',
-#                              'cumulative_response_time_monitor')
-#        plot_cumulative_means(cumulative_response_time1_monitor, response_time_monitor1_mean,
-#                              'Cumulative Mean Response Time 1 (Monitor)',
-#                              'Cumulative Mean Response Time 1 over Batches (Monitor Centre)',
-#                              'cumulative_response_time1_monitor')
-#        plot_cumulative_means(cumulative_waiting_time_monitor, waiting_time_monitor_mean,
-#                              'Cumulative Mean Waiting Time (Monitor)',
-#                              'Cumulative Mean Waiting Time over Batches (Monitor Centre)',
-#                              'cumulative_waiting_time_monitor')
-#
-#        # Plot cumulative means for Plan area
-#        plot_cumulative_means(cumulative_response_time_plan, response_time_plan_mean,
-#                              'Cumulative Mean Response Time (Plan)',
-#                              'Cumulative Mean Response Time over Batches (Plan Centre)',
-#                              'cumulative_response_time_plan')
-#        plot_cumulative_means(cumulative_waiting_time_plan, waiting_time_plan_mean,
-#                              'Cumulative Mean Waiting Time (Plan)',
-#                              'Cumulative Mean Waiting Time over Batches (Plan Centre)', 'cumulative_waiting_time_plan')
-#
-#    else:
-#        print("Usage: python originalmain.py <number_of_times> [finite | infinite]")
-#        sys.exit(1)
+#TODO
+#Gestione grafici finito
+#Parzmetri
+#Gestione STOP

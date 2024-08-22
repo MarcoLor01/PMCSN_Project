@@ -7,7 +7,8 @@ from utility.SimulationUtils import stat, stats, stat_batch, stats_batch
 arrivalTemp = START  # global temp var for getArrival function
 
 departed_job = 0
-
+violations = [0] * 5
+violation = [[], [], [], [], []]
 
 #plantSeeds(DEFAULT)
 
@@ -17,6 +18,13 @@ def simulation(stop=STOP, batch_size=1.0):
     global arrivalTemp
     global number_triage, index_triage, queue_triage
     global number_queue, index_queue, queue
+
+    printed_status = {
+        "25%": False,
+        "50%": False,
+        "75%": False,
+        "100%": False
+    }
     reset()
     analisi_1_volta = 0
     analisi_2_volte = 0
@@ -61,10 +69,12 @@ def simulation(stop=STOP, batch_size=1.0):
     init_analisi(t_Analisi, area_Analisi, queue_Analisi)
 
     while t_triage.arrival < stop or number_triage > 0 or number_queue > 0 or max(number_Analisi) > 0:
+
         pre_process_triage(t_triage, area_triage, number_triage, servers_busy_triage)
         pre_process_queue(area_queue, number_queue, servers_busy_queue)
         pre_process_analisi(t_Analisi, area_Analisi, number_Analisi, servers_busy_Analisi)
         prox_operazione = next_event(t_triage.current, t_queue.current, t_Analisi)
+        monitor_simulation(prox_operazione, stop, printed_status)
         switch(prox_operazione, t_triage, t_queue, t_Analisi)
 
         if batch_size > 1:
@@ -111,26 +121,10 @@ def simulation(stop=STOP, batch_size=1.0):
                  [utilization_batch_analisi, response_batch_analisi, delay_batch_analisi]]
     t_triage.last = t_queue.last = t_Analisi[0].last = t_Analisi[1].last = t_Analisi[2].last = t_Analisi[3].last = \
         t_Analisi[4].last = t_Analisi[5].last = max_value(t_Analisi, t_triage.last, t_queue.last)
-    #     if prox_operazione < INFINITY:
-    #         t_triage.last = prox_operazione
-    #         t_queue.last = prox_operazione
-    #         for i in range(len(t_analisi)):
-    #             t_analisi[i].last = prox_operazione
 
-    #triage_data_rec(area_Analisi[0], t_Analisi[0], queue_Analisi[0])
-    #triage_data(area_triage, t_triage, queue_triage)
-    #queue_data(area_queue, t_queue, queue)
-    #analisi_data(area_Analisi, t_Analisi, queue_Analisi)
 
-    #    print("Analisi: ", sum(index_Analisi))
-    #    print("Queue  : ", index_queue)
-    #    print("Triage : ", index_triage)
-    #    print("Job che hanno fatto esami 1 volta: ", analisi_1_volta)
-    #    print("Job che hanno fatto esami 2 volte: ", analisi_2_volte)
-    #    print("Job che hanno fatto esami 3 volte: ", analisi_3_volte)
-    #    print("Job che hanno fatto esami 4 volte: ", analisi_piu_3)
+    print("Ci sono state: ", sum(violations),  "violazioni su ", analisi_1_volta, "ovvero: ", (sum(violations)/analisi_1_volta))
     return stat(t_triage, area_triage), stat(t_queue, area_queue), stats(t_Analisi, area_Analisi), batch_res
-
 
 def processa_arrivo_triage():
     global number_triage, arrivalTemp
@@ -157,6 +151,17 @@ def processa_completamento_triage():
         t_queue.arrival = check_arrival(t_triage.arrival + STOP)
 
 
+def control_job_violation(job_to_control: Job):
+    if (job_to_control.get_queue_time() - job_to_control.get_arrival_temp()) > OBIETTIVO[job_to_control.get_codice() - 1]:
+        violations[job_to_control.get_codice() - 1] += 1
+        temp = job_to_control.get_queue_time() - job_to_control.get_arrival_temp() - OBIETTIVO[job_to_control.get_codice() - 1]
+        violation[job_to_control.get_codice() - 1].append(temp)
+        if job_to_control.get_codice() - 1 == 0:
+            print (temp)
+
+        #print("Violazione: ", job_to_control.get_queue_time() - job_to_control.get_arrival_temp() , " Codice: ",  job_to_control.get_codice())
+
+
 def processa_completamento_queue():
     global index_queue, number_queue, analisi_3_volte, analisi_2_volte, analisi_piu_3, analisi_1_volta, departed_job
 
@@ -166,6 +171,7 @@ def processa_completamento_queue():
 
     if probability_analisi(job_to_analisi.get_uscita()):
         if job_to_analisi.get_uscita() == 0:
+            control_job_violation(job_to_analisi)
             analisi_1_volta += 1
         elif job_to_analisi.get_uscita() == 1:
             analisi_2_volte += 1
@@ -254,11 +260,30 @@ def scegli_azione():
         return False
 
 
-if __name__ == "__main__":
-    #for i in range (5):
-    batch_size = 940
-    #
-    simulation(STOP, batch_size)
-    #print("Simulazione n ", i)
-    #reset()
-    #print(simulation(STOP))
+def monitor_simulation(prox_operazione, stop, printed_status):
+    # Calcola le soglie percentuali
+    thresholds = {
+        "25%": stop * 0.25,
+        "50%": stop * 0.50,
+        "75%": stop * 0.75,
+        "100%": stop
+    }
+
+    # Controlla la simulazione e stampa i progressi
+    if not printed_status["25%"] and prox_operazione >= thresholds["25%"]:
+        print("Raggiunto il 25% della simulazione.")
+        printed_status["25%"] = True
+
+    if not printed_status["50%"] and prox_operazione >= thresholds["50%"]:
+        print("Raggiunto il 50% della simulazione.")
+        printed_status["50%"] = True
+
+    if not printed_status["75%"] and prox_operazione >= thresholds["75%"]:
+        print("Raggiunto il 75% della simulazione.")
+        printed_status["75%"] = True
+
+    if not printed_status["100%"] and prox_operazione >= thresholds["100%"]:
+        print("Raggiunto il 100% della simulazione. \n")
+        printed_status["100%"] = True
+
+

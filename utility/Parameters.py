@@ -1,15 +1,13 @@
-import numpy as np
-
 # Costanti per la simulazione del sistema
-START = 0.0  # initial time */
-STOP = 7 * 1440.0  # 10080 terminal time */
-#STOP = 200000
+START = 0.0
+STOP = 7 * 1440.0 * 10
+OBIETTIVO = [0, 15, 30, 60, 120, 240]
+
 # True = Exponential  False = Truncate G.
 MODALITY = False
 
-# STOP = 20.0
 INFINITY = float(100.0 * STOP)  # must be much larger than STOP  */
-# INFINITY = float('inf')
+
 # Triage
 TASSO_DI_INGRESSO = 0.092163242  # ingressi (arrivals per unit time)
 NUMERO_DI_SERVER_TRIAGE = 1
