@@ -4,6 +4,8 @@ from model.Job import *
 from utility.ArrivalService import *
 import logging
 
+total_job = [0] * 5
+
 # Configurazione del logger
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 logger = logging.getLogger(__name__)
@@ -25,7 +27,9 @@ server_triage = [Job] * NUMERO_DI_SERVER_TRIAGE
 
 def give_code():
     selectStream(1)
-    return assign_triage_code()
+    code = assign_triage_code()
+    total_job[code-1] += 1
+    return code
 
 
 def assign_triage_code():

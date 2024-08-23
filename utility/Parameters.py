@@ -1,12 +1,13 @@
 # Costanti per la simulazione del sistema
 START = 0.0
-STOP = 7 * 1440.0 * 10
+STOP = 7 * 1440.0 * 200
 OBIETTIVO = [0, 15, 30, 60, 120, 240]
 
 # True = Exponential  False = Truncate G.
 MODALITY = False
 
 INFINITY = float(100.0 * STOP)  # must be much larger than STOP  */
+NUMBER_BATCH = 64
 
 # Triage
 TASSO_DI_INGRESSO = 0.092163242  # ingressi (arrivals per unit time)

@@ -35,11 +35,14 @@ def batch_means(data, batch_size):
     return batch_means
 
 
-def write_on_csv(input_list):
+def write_on_csv(input_list, num_code):
+    i = num_code
     with open("acs.dat", mode='w', newline='') as file:
         writer = csv.writer(file)
         for element in input_list:
-            writer.writerow([element])
+            if not i % 7:
+                writer.writerow([element])
+            i += 1
 
 
 def cumulative_mean(data):

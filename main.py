@@ -2,7 +2,8 @@ import time
 
 import numpy as np
 
-from controller.SimulationController import simulation, violation
+from controller.SimulationController import simulation, violation, violations
+from controller.TriageController import total_job
 from utility.SimulationUtils import write_on_csv, confidence_interval, cumulative_mean, plot_cumulative_means
 import argparse
 from utility.Parameters import *
@@ -14,6 +15,7 @@ NUMERO_ANALISI = 6
 RESPONSE_TIME_TRIAGE = []
 RESPONSE_TIME_QUEUE = []
 DELAY_TIME_QUEUE = []
+DELAY_TIME_QUEUES = []
 RESPONSE_TIME_ANALISI = []
 
 RHO_TRIAGE = []
@@ -25,6 +27,7 @@ ALPHA = 0.05
 
 def finite(seed, n, stop):
     plantSeeds(seed)
+    plot_number_i = 3
     for i in range(n):
 
         try:
@@ -39,10 +42,14 @@ def finite(seed, n, stop):
             RHO_TRIAGE.append(utilization_triage)
             RHO_QUEUE.append(utilization_queue)
             RHO_ANALISI.append(utilization_analisi)
+            if i == plot_number_i:
+                batch_res = stats[3]
+                delay_times_queue = batch_res[1][2]
+                DELAY_TIME_QUEUES.extend(delay_times_queue)
+
 
         except Exception as e:
             print(f"An error occurred during execution: {e}")
-        print(DELAY_TIME_QUEUE)
 
 
 def infinite(seed, stop, batch_size=1.0):
@@ -53,17 +60,19 @@ def infinite(seed, stop, batch_size=1.0):
         response_times_triage, utilization_triage = batch_res[0][1], batch_res[0][0]
         response_times_queue, delay_times_queue, utilization_queue = batch_res[1][1], batch_res[1][2], batch_res[1][0]
         response_times_analisi, utilization_analisi = batch_res[2][1], batch_res[2][0]
+        print("Delay_times_queue: ", delay_times_queue)
 
         RESPONSE_TIME_TRIAGE.extend(response_times_triage)
         RESPONSE_TIME_QUEUE.extend(response_times_queue)
         DELAY_TIME_QUEUE.extend(delay_times_queue)
         RESPONSE_TIME_ANALISI.extend(response_times_analisi)
+        print("DELAY TIMES QUEUE: ", DELAY_TIME_QUEUE)
 
         RHO_TRIAGE.extend(utilization_triage)
         RHO_QUEUE.extend(utilization_queue)
         RHO_ANALISI.extend(utilization_analisi)
 
-        write_on_csv(DELAY_TIME_QUEUE)
+        write_on_csv(delay_times_queue, 1)
 
     except Exception as e:
         print(f"An error occurred during execution: {e}")
@@ -99,10 +108,36 @@ def output_finite(n):
         utilization_a = []
         mean = []
         delay_q = [list(i) for i in zip(*DELAY_TIME_QUEUE)]
+        delay_queue_plot = suddividi_vettore(DELAY_TIME_QUEUES, 7)
+        means = []
+        delay_queue = [list(i) for i in zip(*delay_queue_plot)]
+        media_delay_queue_finite = media_inf(DELAY_TIME_QUEUES)
+
+        for i in range(len(delay_queue)):
+            means.append(cumulative_mean(delay_queue[i]))
+
+        for i in range(len(violation)):
+            if len(violation[i]) != 0:
+                print("Ci sono state mediamente ", int(violations[i] / n), "violazioni in ogni ripetizione per "
+                                                                           "il codice", i,
+                      ". La media per singola violazione è di: ", np.mean(violation[i]), ".\nCon una percentuale di "
+                                                                                         "job che violano il QoS "
+                                                                                         "di: ", violations[
+                          i] / total_job[i], "%\n")
+            else:
+                print("Il codice: ", i, " non ha sforamenti.\n")
+
+        for i in range(len(means)):
+            plot_cumulative_means(means[i], media_delay_queue_finite[i],
+                                  'Cumulative Mean Delay Time (Queue)' + str(i),
+                                  'Cumulative Mean Response Time over Batches (Monitor Centre)',
+                                  '/finite/cumulative_delay_time_queue_' + str(i))
+
         response_q = [list(i) for i in zip(*RESPONSE_TIME_QUEUE)]
         utilization_q = [list(i) for i in zip(*RHO_QUEUE)]
         utilization_t = [list(i) for i in zip(*RHO_TRIAGE)]
         response_t = [list(i) for i in zip(*RESPONSE_TIME_TRIAGE)]
+
         for j in range(len(new_utilization_a)):
             utilization_a.append([list(i) for i in zip(*new_utilization_a[j])])
         for j in range(len(new_response_a)):
@@ -111,17 +146,6 @@ def output_finite(n):
         for i in range(len(delay_q)):
             mean.append(cumulative_mean(delay_q[i]))
 
-        for i in range(len(violation)):
-            if len(violation[i]) != 0:
-                print(np.mean(violation[i]), "su ", len(violation[i]), "campioni, per il codice ", i)
-            else:
-                print("Il codice: ", i, " non ha sforamenti")
-
-        for i in range(len(mean)):
-            plot_cumulative_means(mean[i], np.mean(delay_q[i]),
-                                  'Cumulative Mean Delay Time (Queue)' + str(i),
-                                  'Cumulative Mean Response Time over Batches (Monitor Centre)',
-                                  '/finite/cumulative_delay_time_queue_' + str(i))
         for i in range(len(delay_q)):
             print(f"E[Tq] per codice: {i} = {np.mean(delay_q[i])} +/- {delay_times_queue[i]}")
         for i in range(len(response_q)):
@@ -145,7 +169,7 @@ def output_finite(n):
 
 def media_inf(vettore, num_code=7):
     if len(vettore) % num_code != 0:
-        raise ValueError("La lunghezza del vettore deve essere divisibile per il numero di colori")
+        raise ValueError("La lunghezza del vettore deve essere divisibile per il numero di colori", len(vettore))
     sottovettori = [[] for _ in range(num_code)]
 
     for i, valore in enumerate(vettore):
@@ -160,8 +184,8 @@ def media_inf(vettore, num_code=7):
 def output_infinite():
     media_response_triage = media_inf(RESPONSE_TIME_TRIAGE, num_code=NUMERO_CODICI)
     media_rho_triage = media_inf(RHO_TRIAGE, num_code=NUMERO_DI_SERVER_TRIAGE)
-    media_delay_queue = media_inf(DELAY_TIME_QUEUE)
     media_response_queue = media_inf(RESPONSE_TIME_QUEUE)
+    media_delay_queue = media_inf(DELAY_TIME_QUEUE)
     media_rho_queue = media_inf(RHO_QUEUE, num_code=NUMERO_DI_SERVER_QUEUE)
     media_response_analisi = media_analisi_inf(RESPONSE_TIME_ANALISI, 6)
     media_rho_analisi = media_analisi_inf(RHO_ANALISI, 6)
@@ -179,9 +203,14 @@ def output_infinite():
 
     for i in range(len(violation)):
         if len(violation[i]) != 0:
-            print(np.mean(violation[i]), "su ", len(violation[i]), "campioni, per il codice ", i)
+            print("Ci sono state ", int(violations[i]), "violazioni per "
+                                                        "il codice", i,
+                  ". La media per singola violazione è di: ", np.mean(violation[i]), ".\nCon una percentuale di "
+                                                                                     "job che violano il QoS "
+                                                                                     "di: ", violations[
+                      i] / total_job[i], "%\n")
         else:
-            print("Il codice: ", i, " non ha sforamenti")
+            print("Il codice: ", i, " non ha sforamenti.\n")
 
     for i in range(len(mean)):
         plot_cumulative_means(mean[i], media_delay_queue[i],
@@ -305,6 +334,5 @@ if __name__ == "__main__":
     else:
         raise Exception("Argomento dei flag non valido")
 #TODO
-#Gestione grafici finito
 #Parzmetri
 #Gestione STOP

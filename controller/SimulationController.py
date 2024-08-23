@@ -10,6 +10,7 @@ departed_job = 0
 violations = [0] * 5
 violation = [[], [], [], [], []]
 
+
 #plantSeeds(DEFAULT)
 
 
@@ -34,6 +35,7 @@ def simulation(stop=STOP, batch_size=1.0):
     NUMERO_CODE_Q = 7
     NUMERO_CODE_A = 2
     current_batch = 0
+    batch_number = 0
 
     jobs_complete_batch_triage = [0.0] * NUMERO_CODICI
     delay_times_batch_triage = [0.0] * NUMERO_CODICI
@@ -77,54 +79,61 @@ def simulation(stop=STOP, batch_size=1.0):
         monitor_simulation(prox_operazione, stop, printed_status)
         switch(prox_operazione, t_triage, t_queue, t_Analisi)
 
-        if batch_size > 1:
-            if departed_job % batch_size == 0 and departed_job != 0:
-                res_t = stat_batch(t_triage, area_triage, service_batch_triage, current_batch,
-                                   jobs_complete_batch_triage, wait_time_batch_triage, delay_times_batch_triage)
-                utilization_batch_triage += res_t[0]
+        if (batch_size > 1 and departed_job % batch_size == 0 and departed_job != 0) or (batch_size == 1 and departed_job % 100 == 0 and departed_job != 0):
+            batch_number += 1
+
+
+            res_t = stat_batch(t_triage, area_triage, service_batch_triage, current_batch,
+                               jobs_complete_batch_triage, wait_time_batch_triage, delay_times_batch_triage)
+            utilization_batch_triage += res_t[0]
+            if len(res_t[1]) == 7 and len(res_t[2]) == 7:
                 response_batch_triage += res_t[1]
                 delay_batch_triage += res_t[2]
 
-                res_q = stat_batch(t_queue, area_queue, service_batch_queue, current_batch, jobs_complete_batch_queue,
-                                   wait_time_batch_queue, delay_times_batch_queue)
+            res_q = stat_batch(t_queue, area_queue, service_batch_queue, current_batch, jobs_complete_batch_queue,
+                               wait_time_batch_queue, delay_times_batch_queue)
+            if len(res_q[1]) == 7 and len(res_q[2]) == 7:
                 utilization_batch_queue += res_q[0]
                 response_batch_queue += res_q[1]
                 delay_batch_queue += res_q[2]
+                print("Batch numero ", batch_number, "valori: ", res_q[2])
+            else:
+                print("Errore nel batch: ", batch_number)
+            res_a = stats_batch(t_Analisi, area_Analisi, service_batch_analisi, current_batch,
+                                jobs_complete_batch_analisi, wait_time_batch_analisi, delay_times_batch_analisi)
+            utilization_batch_analisi += res_a[0]
+            response_batch_analisi += res_a[1]
+            delay_batch_analisi += res_a[2]
 
-                res_a = stats_batch(t_Analisi, area_Analisi, service_batch_analisi, current_batch,
-                                    jobs_complete_batch_analisi, wait_time_batch_analisi, delay_times_batch_analisi)
-                utilization_batch_analisi += res_a[0]
-                response_batch_analisi += res_a[1]
-                delay_batch_analisi += res_a[2]
+            current_batch = t_queue.current
 
-                current_batch = t_queue.current
+            jobs_complete_batch_triage = area_triage.jobs_complete_color.copy()
+            wait_time_batch_triage = area_triage.wait_time.copy()
+            service_batch_triage = area_triage.service.copy()
+            delay_times_batch_triage = area_triage.delay_time.copy()
 
-                jobs_complete_batch_triage = area_triage.jobs_complete_color.copy()
-                wait_time_batch_triage = area_triage.wait_time.copy()
-                service_batch_triage = area_triage.service.copy()
-                delay_times_batch_triage = area_triage.delay_time.copy()
+            jobs_complete_batch_queue = area_queue.jobs_complete_color.copy()
+            wait_time_batch_queue = area_queue.wait_time.copy()
+            service_batch_queue = area_queue.service.copy()
+            delay_times_batch_queue = area_queue.delay_time.copy()
 
-                jobs_complete_batch_queue = area_queue.jobs_complete_color.copy()
-                wait_time_batch_queue = area_queue.wait_time.copy()
-                service_batch_queue = area_queue.service.copy()
-                delay_times_batch_queue = area_queue.delay_time.copy()
+            for i in range(len(area_Analisi)):
+                jobs_complete_batch_analisi[i] = area_Analisi[i].jobs_complete_color.copy()
+                wait_time_batch_analisi[i] = area_Analisi[i].wait_time.copy()
+                service_batch_analisi[i] = area_Analisi[i].service.copy()
+                delay_times_batch_analisi[i] = area_Analisi[i].delay_time.copy()
 
-                for i in range(len(area_Analisi)):
-                    jobs_complete_batch_analisi[i] = area_Analisi[i].jobs_complete_color.copy()
-                    wait_time_batch_analisi[i] = area_Analisi[i].wait_time.copy()
-                    service_batch_analisi[i] = area_Analisi[i].service.copy()
-                    delay_times_batch_analisi[i] = area_Analisi[i].delay_time.copy()
-
-                departed_job = 0
+            departed_job = 0
     batch_res = [[utilization_batch_triage, response_batch_triage, delay_batch_triage],
                  [utilization_batch_queue, response_batch_queue, delay_batch_queue],
                  [utilization_batch_analisi, response_batch_analisi, delay_batch_analisi]]
     t_triage.last = t_queue.last = t_Analisi[0].last = t_Analisi[1].last = t_Analisi[2].last = t_Analisi[3].last = \
         t_Analisi[4].last = t_Analisi[5].last = max_value(t_Analisi, t_triage.last, t_queue.last)
 
-
-    print("Ci sono state: ", sum(violations),  "violazioni su ", analisi_1_volta, "ovvero: ", (sum(violations)/analisi_1_volta))
+    # print("Ci sono state: ", sum(violations), "violazioni su ", analisi_1_volta, "ovvero: ",
+    #      (sum(violations) / analisi_1_volta))
     return stat(t_triage, area_triage), stat(t_queue, area_queue), stats(t_Analisi, area_Analisi), batch_res
+
 
 def processa_arrivo_triage():
     global number_triage, arrivalTemp
@@ -152,12 +161,12 @@ def processa_completamento_triage():
 
 
 def control_job_violation(job_to_control: Job):
-    if (job_to_control.get_queue_time() - job_to_control.get_arrival_temp()) > OBIETTIVO[job_to_control.get_codice() - 1]:
+    if (job_to_control.get_queue_time() - job_to_control.get_arrival_temp()) > OBIETTIVO[
+        job_to_control.get_codice() - 1]:
         violations[job_to_control.get_codice() - 1] += 1
-        temp = job_to_control.get_queue_time() - job_to_control.get_arrival_temp() - OBIETTIVO[job_to_control.get_codice() - 1]
+        temp = job_to_control.get_queue_time() - job_to_control.get_arrival_temp() - OBIETTIVO[
+            job_to_control.get_codice() - 1]
         violation[job_to_control.get_codice() - 1].append(temp)
-        if job_to_control.get_codice() - 1 == 0:
-            print (temp)
 
         #print("Violazione: ", job_to_control.get_queue_time() - job_to_control.get_arrival_temp() , " Codice: ",  job_to_control.get_codice())
 
@@ -285,5 +294,3 @@ def monitor_simulation(prox_operazione, stop, printed_status):
     if not printed_status["100%"] and prox_operazione >= thresholds["100%"]:
         print("Raggiunto il 100% della simulazione. \n")
         printed_status["100%"] = True
-
-
