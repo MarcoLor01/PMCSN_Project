@@ -14,7 +14,7 @@ violation = [[], [], [], [], []]
 #plantSeeds(DEFAULT)
 
 
-def simulation(stop=STOP, batch_size=1.0):
+def simulation(stop, batch_size = 1, number_valid_batch = 64):
     global number_Analisi, index_Analisi, queue_Analis, analisi_1_volta, analisi_2_volte, analisi_piu_3, analisi_3_volte, departed_job
     global arrivalTemp
     global number_triage, index_triage, queue_triage
@@ -71,7 +71,6 @@ def simulation(stop=STOP, batch_size=1.0):
     init_analisi(t_Analisi, area_Analisi, queue_Analisi)
 
     while t_triage.arrival < stop or number_triage > 0 or number_queue > 0 or max(number_Analisi) > 0:
-
         pre_process_triage(t_triage, area_triage, number_triage, servers_busy_triage)
         pre_process_queue(area_queue, number_queue, servers_busy_queue)
         pre_process_analisi(t_Analisi, area_Analisi, number_Analisi, servers_busy_Analisi)
@@ -79,31 +78,36 @@ def simulation(stop=STOP, batch_size=1.0):
         monitor_simulation(prox_operazione, stop, printed_status)
         switch(prox_operazione, t_triage, t_queue, t_Analisi)
 
-        if (batch_size > 1 and departed_job % batch_size == 0 and departed_job != 0) or (batch_size == 1 and departed_job % 100 == 0 and departed_job != 0):
-            batch_number += 1
-
+        if (batch_size > 1 and departed_job % batch_size == 0 and departed_job != 0) or (
+                batch_size == 1 and departed_job % 100 == 0 and departed_job != 0):
 
             res_t = stat_batch(t_triage, area_triage, service_batch_triage, current_batch,
                                jobs_complete_batch_triage, wait_time_batch_triage, delay_times_batch_triage)
-            utilization_batch_triage += res_t[0]
-            if len(res_t[1]) == 7 and len(res_t[2]) == 7:
-                response_batch_triage += res_t[1]
-                delay_batch_triage += res_t[2]
-
             res_q = stat_batch(t_queue, area_queue, service_batch_queue, current_batch, jobs_complete_batch_queue,
                                wait_time_batch_queue, delay_times_batch_queue)
-            if len(res_q[1]) == 7 and len(res_q[2]) == 7:
+            res_a = stats_batch(t_Analisi, area_Analisi, service_batch_analisi, current_batch,
+                                jobs_complete_batch_analisi, wait_time_batch_analisi, delay_times_batch_analisi)
+
+            add = True
+
+            if len(res_t[1]) != 5 or len(res_t[2]) != 5 or len(res_q[1]) != 7 or len(res_q[2]) != 7:
+                add = False
+
+            for i in range(0, NUMERO_DI_ANALISI):
+                if len(res_a[1][i]) != 2 or len(res_a[2][i]) != 2:
+                    add = False
+
+            if add and batch_number < number_valid_batch:
+                utilization_batch_triage += res_t[0]
+                response_batch_triage += res_t[1]
+                delay_batch_triage += res_t[2]
                 utilization_batch_queue += res_q[0]
                 response_batch_queue += res_q[1]
                 delay_batch_queue += res_q[2]
-                print("Batch numero ", batch_number, "valori: ", res_q[2])
-            else:
-                print("Errore nel batch: ", batch_number)
-            res_a = stats_batch(t_Analisi, area_Analisi, service_batch_analisi, current_batch,
-                                jobs_complete_batch_analisi, wait_time_batch_analisi, delay_times_batch_analisi)
-            utilization_batch_analisi += res_a[0]
-            response_batch_analisi += res_a[1]
-            delay_batch_analisi += res_a[2]
+                utilization_batch_analisi += res_a[0]
+                response_batch_analisi += res_a[1]
+                delay_batch_analisi += res_a[2]
+                batch_number += 1
 
             current_batch = t_queue.current
 
@@ -157,7 +161,7 @@ def processa_completamento_triage():
     if job_completed.get_codice() == 1 or job_completed.get_codice() == 2 or scegli_azione():
         number_queue += 1
         pass_to_queue(job_completed, queue)
-        t_queue.arrival = check_arrival(t_triage.arrival + STOP)
+        t_queue.arrival = check_arrival(t_triage.arrival + Parameters.STOP)
 
 
 def control_job_violation(job_to_control: Job):

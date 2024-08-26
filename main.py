@@ -1,12 +1,11 @@
-import time
-
 import numpy as np
 
 from controller.SimulationController import simulation, violation, violations
 from controller.TriageController import total_job
+from utility import Parameters
 from utility.SimulationUtils import write_on_csv, confidence_interval, cumulative_mean, plot_cumulative_means
 import argparse
-from utility.Parameters import *
+from utility.Parameters import NUMERO_DI_SERVER_QUEUE, NUMERO_DI_SERVER_TRIAGE
 from utility.Rngs import plantSeeds, DEFAULT
 
 NUMERO_CODICI = 5
@@ -31,6 +30,7 @@ def finite(seed, n, stop):
     for i in range(n):
 
         try:
+            print("Eseguo la simulazione n.",i)
             stats = simulation(stop)
             response_times_triage, utilization_triage = stats[0][1], stats[0][0]
             response_times_queue, delay_times_queue, utilization_queue = stats[1][1], stats[1][2], stats[1][0]
@@ -47,7 +47,6 @@ def finite(seed, n, stop):
                 delay_times_queue = batch_res[1][2]
                 DELAY_TIME_QUEUES.extend(delay_times_queue)
 
-
         except Exception as e:
             print(f"An error occurred during execution: {e}")
 
@@ -60,13 +59,11 @@ def infinite(seed, stop, batch_size=1.0):
         response_times_triage, utilization_triage = batch_res[0][1], batch_res[0][0]
         response_times_queue, delay_times_queue, utilization_queue = batch_res[1][1], batch_res[1][2], batch_res[1][0]
         response_times_analisi, utilization_analisi = batch_res[2][1], batch_res[2][0]
-        print("Delay_times_queue: ", delay_times_queue)
 
         RESPONSE_TIME_TRIAGE.extend(response_times_triage)
         RESPONSE_TIME_QUEUE.extend(response_times_queue)
         DELAY_TIME_QUEUE.extend(delay_times_queue)
         RESPONSE_TIME_ANALISI.extend(response_times_analisi)
-        print("DELAY TIMES QUEUE: ", DELAY_TIME_QUEUE)
 
         RHO_TRIAGE.extend(utilization_triage)
         RHO_QUEUE.extend(utilization_queue)
@@ -224,6 +221,7 @@ def output_infinite():
     utilization_triage = confidence_interval(ALPHA, len(rho_t_vect), rho_t_vect)
     response_time_triage = confidence_interval(ALPHA, len(response_t_vect), response_t_vect)
 
+
     new_utilization_a = []
     new_response_a = []
     utilizations_analisi = suddividi_vettore_analisi(RHO_ANALISI, 6)
@@ -305,17 +303,24 @@ def media_analisi_inf(vettori, n_gruppi):
 
 
 if __name__ == "__main__":
-    batch_size = 940
-    #
+    batch_size = 512
     parser = argparse.ArgumentParser(description="Scelta modalità di simulazione")
     parser.add_argument('-m', '--modality', type=str, help="Inserire -m finite per simulazione finita, lasciare vuoto "
                                                            "per infinita")
     parser.add_argument('-r', '--repetition', type=int, help="Inserire -m seguito da un intero per inserire il "
                                                              "numero di ripetizioni")
+    parser.add_argument('-b', '--better', type=str, help="Inserire -b seguito da True o False per attivare o no il "
+                                                         "modello migliorativo")
 
     args = parser.parse_args()
 
     # Utilizza le flag e gli argomenti
+    if args.better == "true":
+        Parameters.migliorativo = True
+        print("Modello migliorativo")
+    else:
+        print("Modello standard")
+
     if args.modality == "finite":
 
         if args.repetition is not None and args.repetition > 0:
@@ -324,12 +329,13 @@ if __name__ == "__main__":
             raise Exception("Numero di ripetizioni per simulazione ad orizzonte finito <= 0")
 
         print("Inizio simulazione ad orizzonte finito... ")
-        finite(DEFAULT, args.repetition, STOP)
+        Parameters.STOP = 7 * 1440.0
+        finite(DEFAULT, args.repetition, Parameters.STOP)
         output_finite(args.repetition)
 
     elif (args.modality is None or args.modality == "infinite") and args.repetition is None:
         print("Inizio simulazione ad orizzonte infinito... ")
-        infinite(DEFAULT, STOP, batch_size)
+        infinite(DEFAULT, Parameters.STOP, batch_size)
         output_infinite()
     else:
         raise Exception("Argomento dei flag non valido")

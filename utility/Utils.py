@@ -1,4 +1,5 @@
-from utility.Parameters import INFINITY, STOP, TEMPO_LIMITE, START
+from utility import Parameters
+from utility.Parameters import INFINITY, TEMPO_LIMITE, START, OBIETTIVO_MIGLIORATIVO
 
 
 class Track:
@@ -70,9 +71,14 @@ def min_time_completion(completion_times):
 
 def get_job_old(list_of_queues, t):
     """Selects the next job to serve based on a priority policy"""
-    for queue in list_of_queues:
-        if queue and queue[0] and (t.current - queue[0].get_id()) > TEMPO_LIMITE:
-            return queue.pop(0)
+    if Parameters.migliorativo:
+        for queue in list_of_queues:
+            if queue and queue[0] and (t.current - queue[0].get_id()) > OBIETTIVO_MIGLIORATIVO[queue[0].get_codice() - 1]:
+                return queue.pop(0)
+    else:
+        for queue in list_of_queues:
+            if queue and queue[0] and (t.current - queue[0].get_id()) > TEMPO_LIMITE:
+                return queue.pop(0)
     return None
 
 
@@ -85,7 +91,7 @@ def add_job_to_queue(job, queue):
 
 
 def check_arrival(arrival: int):
-    if arrival >= STOP:
+    if arrival >= Parameters.STOP:
         return INFINITY
     else:
         return arrival

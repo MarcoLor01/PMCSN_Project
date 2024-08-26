@@ -78,7 +78,7 @@ def arrival_queue(t, servers_busy, queue_q):
     index = -1
     codice = -1
 
-    if t_queue.arrival > STOP:
+    if t_queue.arrival > Parameters.STOP:
         t_queue.arrival = INFINITY
 
     for i in range(NUMERO_DI_SERVER_QUEUE):

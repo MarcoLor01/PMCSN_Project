@@ -85,3 +85,135 @@ Elettrocardiogramma: 60% fino ad un ora, 40% da 1 a 3 ore
 Altro: 35% fino ad  un ora, 35% fino a 3 ore, 20% tra 3 e 6, 10% + di 6
 In media ogni paziente svolge: 1.75 visite
 
+
+
+Ci sono state  1 violazioni per il codice 0 . La media per singola violazione è di:  0.20351058986852877 .
+Con una percentuale di job che violano il QoS di:  0.0004424778761061947 %
+
+Ci sono state  3520 violazioni per il codice 1 . La media per singola violazione è di:  125.7923431094699 .
+Con una percentuale di job che violano il QoS di:  0.4862550075977345 %
+
+Ci sono state  8103 violazioni per il codice 2 . La media per singola violazione è di:  200.62828653097282 .
+Con una percentuale di job che violano il QoS di:  0.5696309314586995 %
+
+Ci sono state  8502 violazioni per il codice 3 . La media per singola violazione è di:  283.16094902215974 .
+Con una percentuale di job che violano il QoS di:  0.7535897890444957 %
+
+Ci sono state  1491 violazioni per il codice 4 . La media per singola violazione è di:  706.1326485944284 .
+Con una percentuale di job che violano il QoS di:  0.7737415672029061 %
+
+TEMPO LIMITE: OBIETTIVO - 5 MINUTI PER OGNI COLORE
+
+Il codice:  0  non ha sforamenti.
+
+Ci sono state  2801 violazioni per il codice 1 . La media per singola violazione è di:  15.426934847178208 .
+Con una percentuale di job che violano il QoS di:  0.3869318966708109 %
+
+Ci sono state  7715 violazioni per il codice 2 . La media per singola violazione è di:  30.593965524958843 .
+Con una percentuale di job che violano il QoS di:  0.5423550087873462 %
+
+Ci sono state  8451 violazioni per il codice 3 . La media per singola violazione è di:  215.23469870904592 .
+Con una percentuale di job che violano il QoS di:  0.7490693139514271 %
+
+Ci sono state  1476 violazioni per il codice 4 . La media per singola violazione è di:  2419.757990271641 .
+Con una percentuale di job che violano il QoS di:  0.7659574468085106 %
+
+TEMPO LIMITE: OBIETTIVO - 10 MINUTI PER OGNI COLORE
+
+Ci sono state  1 violazioni per il codice 0 . La media per singola violazione è di:  1.4900615204533096 .
+Con una percentuale di job che violano il QoS di:  0.0004424778761061947 %
+
+Ci sono state  2261 violazioni per il codice 1 . La media per singola violazione è di:  15.249760612349826 .
+Con una percentuale di job che violano il QoS di:  0.3123359580052493 %
+
+Ci sono state  6630 violazioni per il codice 2 . La media per singola violazione è di:  31.007621460990066 .
+Con una percentuale di job che violano il QoS di:  0.46608084358523727 %
+
+Ci sono state  8176 violazioni per il codice 3 . La media per singola violazione è di:  230.4224050423229 .
+Con una percentuale di job che violano il QoS di:  0.7246942031554688 %
+
+Ci sono state  1447 violazioni per il codice 4 . La media per singola violazione è di:  2605.407454863649 .
+Con una percentuale di job che violano il QoS di:  0.7509081473793461 %
+
+DIMEZZANDO I BIANCHI SEMPRE CON 4 SERVER E 10 MINUTI:
+
+Il codice:  0  non ha sforamenti.
+
+Ci sono state  1966 violazioni per il codice 1 . La media per singola violazione è di:  15.10566350507001 .
+Con una percentuale di job che violano il QoS di:  0.27154696132596684 %
+
+Ci sono state  5467 violazioni per il codice 2 . La media per singola violazione è di:  29.344874101150022 .
+Con una percentuale di job che violano il QoS di:  0.3842153348794715 %
+
+Ci sono state  6554 violazioni per il codice 3 . La media per singola violazione è di:  247.1010390440734 .
+Con una percentuale di job che violano il QoS di:  0.5807709348692955 %
+
+Ci sono state  565 violazioni per il codice 4 . La media per singola violazione è di:  1574.794217891551 .
+Con una percentuale di job che violano il QoS di:  0.5867082035306335 %
+
+10 MINUTI E UN SERVER IN PIU NELLE CODE:
+
+Il codice:  0  non ha sforamenti.
+
+Ci sono state  261 violazioni per il codice 1 . La media per singola violazione è di:  7.046522121325469 .
+Con una percentuale di job che violano il QoS di:  0.03605470368835474 %
+
+Ci sono state  368 violazioni per il codice 2 . La media per singola violazione è di:  11.994101509534227 .
+Con una percentuale di job che violano il QoS di:  0.02586994727592267 %
+
+Ci sono state  317 violazioni per il codice 3 . La media per singola violazione è di:  38.645270599122526 .
+Con una percentuale di job che violano il QoS di:  0.028097854990249957 %
+
+Ci sono state  48 violazioni per il codice 4 . La media per singola violazione è di:  88.12937558756194 .
+Con una percentuale di job che violano il QoS di:  0.024909185262065387 %
+
+10 MINUTI, UN SERVER IN PIU E BIANCHI DIMEZZATI:
+
+Il codice:  0  non ha sforamenti.
+
+Ci sono state  227 violazioni per il codice 1 . La media per singola violazione è di:  6.024563469359754 .
+Con una percentuale di job che violano il QoS di:  0.031353591160220996 %
+
+Ci sono state  294 violazioni per il codice 2 . La media per singola violazione è di:  13.261949842680746 .
+Con una percentuale di job che violano il QoS di:  0.02066202825216108 %
+
+Ci sono state  252 violazioni per il codice 3 . La media per singola violazione è di:  30.19817106921493 .
+Con una percentuale di job che violano il QoS di:  0.022330527248560036 %
+
+Ci sono state  16 violazioni per il codice 4 . La media per singola violazione è di:  51.57755187342991 .
+Con una percentuale di job che violano il QoS di:  0.016614745586708203 %
+
+SIMULAZIONE FINITA, STANDARD:
+
+Il codice:  0  non ha sforamenti.
+
+Ci sono state mediamente  69 violazioni in ogni ripetizione per il codice 1 . La media per singola violazione è di:  65.97458514917534 .
+Con una percentuale di job che violano il QoS di:  0.3812149935372684 %
+
+Ci sono state mediamente  158 violazioni in ogni ripetizione per il codice 2 . La media per singola violazione è di:  141.33537978669847 .
+Con una percentuale di job che violano il QoS di:  0.4440793796819556 %
+
+Ci sono state mediamente  178 violazioni in ogni ripetizione per il codice 3 . La media per singola violazione è di:  238.4749102102933 .
+Con una percentuale di job che violano il QoS di:  0.6325367850425933 %
+
+Ci sono state mediamente  31 violazioni in ogni ripetizione per il codice 4 . La media per singola violazione è di:  305.0965449922528 .
+Con una percentuale di job che violano il QoS di:  0.651208360548661 %
+
+SIMULAZIONE FINITA, MIGLIORATIVO:
+
+Il codice:  0  non ha sforamenti.
+
+Ci sono state mediamente  49 violazioni in ogni ripetizione per il codice 1 . La media per singola violazione è di:  15.7243577279203 .
+Con una percentuale di job che violano il QoS di:  0.2718655751831107 %
+
+Ci sono state mediamente  140 violazioni in ogni ripetizione per il codice 2 . La media per singola violazione è di:  30.419446828367708 .
+Con una percentuale di job che violano il QoS di:  0.3942699434879748 %
+
+Ci sono state mediamente  169 violazioni in ogni ripetizione per il codice 3 . La media per singola violazione è di:  205.08670428431407 .
+Con una percentuale di job che violano il QoS di:  0.5989047461002324 %
+
+Ci sono state mediamente  29 violazioni in ogni ripetizione per il codice 4 . La media per singola violazione è di:  1377.2879777240587 .
+Con una percentuale di job che violano il QoS di:  0.6214892227302417 %
+
+SIMULAZIONE MIGLIORATIVO, CON MENO BIANCHI:
+

@@ -87,7 +87,7 @@ def pass_to_analisi(job, queue1, t1):
     analisi_da_fare = job.get_lista_analisi()[analisi]
     analisi, posto_analisi = switch(analisi_da_fare, job)
     t_Analisi[analisi].arrival = t1.last
-    t_Analisi[analisi].arrival = check_arrival(t1.arrival + STOP)
+    t_Analisi[analisi].arrival = check_arrival(t1.arrival + Parameters.STOP)
     arrival_analisi(t_Analisi[analisi], servers_busy_Analisi[analisi], queue1[analisi], analisi)
     return analisi
 

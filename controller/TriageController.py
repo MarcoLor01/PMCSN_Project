@@ -37,6 +37,9 @@ def assign_triage_code():
     codes = [1, 2, 3, 4, 5]
     cumulative_probabilities = [0.063, 0.259, 0.642, 0.948, 1.0]  # Probabilità cumulative
     rand_num = random()
+    # while rand_num > 0.974: PER MIGLIORATIVO CON DIMEZZAMENTO DEI BIANCHI
+    #    rand_num = random()
+
     for code, cum_prob in zip(codes, cumulative_probabilities):
         if rand_num < cum_prob:
             return code
@@ -63,8 +66,6 @@ def pre_process_triage(t, area, number, server_busy):
     t.next = minimum(t.arrival, t.min_completion)  # next event time
 
     if number > 0 and t.last != t.next:
-        if t.last > t.next:
-            print("T_next", t.next, "T_last", t.last)
         elapsed_time = t.next - t.current
         area.node += elapsed_time * number
         area.queue += elapsed_time * (number - sum(server_busy) - job_att_inter_triage)
@@ -84,7 +85,7 @@ def arrival_triage(t, servers_busy, queue_t):
     full = True
     codice = -1
     index = -1
-    if t.arrival > STOP:
+    if t.arrival > Parameters.STOP:
         t.arrival = INFINITY
 
     for i in range(NUMERO_DI_SERVER_TRIAGE):
