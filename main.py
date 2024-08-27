@@ -7,6 +7,7 @@ from utility.SimulationUtils import write_on_csv, confidence_interval, cumulativ
 import argparse
 from utility.Parameters import NUMERO_DI_SERVER_QUEUE, NUMERO_DI_SERVER_TRIAGE
 from utility.Rngs import plantSeeds, DEFAULT
+from utility.Utils import generate_path_plot, execute_parallel_simulations
 
 NUMERO_CODICI = 5
 NUMERO_ANALISI = 6
@@ -69,13 +70,13 @@ def infinite(seed, stop, batch_size=1.0):
         RHO_QUEUE.extend(utilization_queue)
         RHO_ANALISI.extend(utilization_analisi)
 
-        write_on_csv(delay_times_queue, 1)
+        #write_on_csv(delay_times_queue, 1)
 
     except Exception as e:
         print(f"An error occurred during execution: {e}")
 
 
-def output_finite(n):
+def output_finite(n, modality, better, white):
     try:
         new_utilization_a = []
         new_response_a = []
@@ -128,7 +129,7 @@ def output_finite(n):
             plot_cumulative_means(means[i], media_delay_queue_finite[i],
                                   'Cumulative Mean Delay Time (Queue)' + str(i),
                                   'Cumulative Mean Response Time over Batches (Monitor Centre)',
-                                  '/finite/cumulative_delay_time_queue_' + str(i))
+                                  '/' + generate_path_plot(modality, better, white) + '/cumulative_delay_time_queue_' + str(i))
 
         response_q = [list(i) for i in zip(*RESPONSE_TIME_QUEUE)]
         utilization_q = [list(i) for i in zip(*RHO_QUEUE)]
@@ -178,7 +179,7 @@ def media_inf(vettore, num_code=7):
     return medie
 
 
-def output_infinite():
+def output_infinite(modality, better, white):
     media_response_triage = media_inf(RESPONSE_TIME_TRIAGE, num_code=NUMERO_CODICI)
     media_rho_triage = media_inf(RHO_TRIAGE, num_code=NUMERO_DI_SERVER_TRIAGE)
     media_response_queue = media_inf(RESPONSE_TIME_QUEUE)
@@ -213,7 +214,7 @@ def output_infinite():
         plot_cumulative_means(mean[i], media_delay_queue[i],
                               'Cumulative Mean Delay Time (Queue)' + str(i),
                               'Cumulative Mean Response Time over Batches (Monitor Centre)',
-                              '/infinite/cumulative_delay_time_queue_' + str(i))
+                              '/' + generate_path_plot(modality, better, white) + '/cumulative_delay_time_queue_' + str(i))
 
     delay_times_queue = confidence_interval(ALPHA, len(delay_q_vect), delay_q_vect)
     response_time_queue = confidence_interval(ALPHA, len(response_q_vect), response_q_vect)
@@ -304,41 +305,48 @@ def media_analisi_inf(vettori, n_gruppi):
 
 if __name__ == "__main__":
     batch_size = 512
+    numbers_repetition = 64
     parser = argparse.ArgumentParser(description="Scelta modalità di simulazione")
-    parser.add_argument('-m', '--modality', type=str, help="Inserire -m finite per simulazione finita, lasciare vuoto "
-                                                           "per infinita")
-    parser.add_argument('-r', '--repetition', type=int, help="Inserire -m seguito da un intero per inserire il "
-                                                             "numero di ripetizioni")
-    parser.add_argument('-b', '--better', type=str, help="Inserire -b seguito da True o False per attivare o no il "
-                                                         "modello migliorativo")
+    parser.add_argument('-m', '--modality', type=str, help="Inserire -m finite per simulazione finita, lasciare vuoto per infinita")
+    parser.add_argument('-r', '--repetition', type=int, help="Inserire -m seguito dal numero di ripetizioni")
+    parser.add_argument('-b', '--better', type=str, help="Inserire -b seguito da true per attivare il modello migliorativo")
+    parser.add_argument('-w', '--white', type=str, help="Inserire -w seguito da true per dimezzare il numero di bianchi")
+    parser.add_argument('-f', '--full', action='store_true', help="Esegue simulazioni parallele finite e infinite")
 
     args = parser.parse_args()
-
-    # Utilizza le flag e gli argomenti
-    if args.better == "true":
-        Parameters.migliorativo = True
-        print("Modello migliorativo")
+    if args.full:
+        execute_parallel_simulations()
     else:
-        print("Modello standard")
-
-    if args.modality == "finite":
-
-        if args.repetition is not None and args.repetition > 0:
-            print("Eseguo", args.repetition, "ripetizioni")
+        # Utilizza le flag e gli argomenti
+        if args.better == "true":
+            Parameters.migliorativo = True
+            print("Modello migliorativo")
         else:
-            raise Exception("Numero di ripetizioni per simulazione ad orizzonte finito <= 0")
+            print("Modello standard")
 
-        print("Inizio simulazione ad orizzonte finito... ")
-        Parameters.STOP = 7 * 1440.0
-        finite(DEFAULT, args.repetition, Parameters.STOP)
-        output_finite(args.repetition)
+        # Utilizza le flag e gli argomenti
+        if args.white == "true":
+            Parameters.TASSO_DI_INGRESSO = 0.0897669977
+            print("Numero di bianchi dimezzato")
 
-    elif (args.modality is None or args.modality == "infinite") and args.repetition is None:
-        print("Inizio simulazione ad orizzonte infinito... ")
-        infinite(DEFAULT, Parameters.STOP, batch_size)
-        output_infinite()
-    else:
-        raise Exception("Argomento dei flag non valido")
-#TODO
-#Parzmetri
-#Gestione STOP
+        if args.modality == "finite":
+            if args.repetition is None:
+                print("Eseguo, come preimpostato", numbers_repetition, "ripetizioni")
+            elif args.repetition is not None and args.repetition > 0:
+                numbers_repetition = args.repetition
+                print("Eseguo", args.repetition, "ripetizioni")
+            else:
+                raise Exception("Numero di ripetizioni per simulazione ad orizzonte finito <= 0")
+
+            print("Inizio simulazione ad orizzonte finito... ")
+            Parameters.STOP = 7 * 1440.0
+            finite(DEFAULT, numbers_repetition, Parameters.STOP)
+            output_finite(numbers_repetition, args.modality, args.better, args.white)
+
+        elif (args.modality is None or args.modality == "infinite") and args.repetition is None:
+            print("Inizio simulazione ad orizzonte infinito... ")
+            infinite(DEFAULT, Parameters.STOP, batch_size)
+            output_infinite(args.modality, args.better, args.white)
+        else:
+            raise Exception("Argomento dei flag non valido")
+

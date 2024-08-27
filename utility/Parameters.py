@@ -13,7 +13,6 @@ INFINITY = float(100.0 * STOP)  # must be much larger than STOP  */
 NUMBER_BATCH = 64
 
 # Triage
-#TASSO_DI_INGRESSO = 0.0897669977  # ingressi (arrivals per unit time) # TASSO PER MIGLIORATIVO CON DIMEZZAMENTO BIANCHI
 TASSO_DI_INGRESSO = 0.092163242  # ingressi (arrivals per unit time)
 NUMERO_DI_SERVER_TRIAGE = 1
 MEDIA_SERVIZIO_TRIAGE = 5.5

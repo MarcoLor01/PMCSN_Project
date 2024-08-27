@@ -1,5 +1,7 @@
 from utility import Parameters
 from utility.Parameters import INFINITY, TEMPO_LIMITE, START, OBIETTIVO_MIGLIORATIVO
+import subprocess
+import shlex
 
 
 class Track:
@@ -17,6 +19,7 @@ class Track:
 
         self.num_queue = num_queue
         self.num_serv = num_serv
+
     def reset(self):
         self.node = 0.0  # time integrated number in the node
         self.queue = 0.0  # time integrated number in the queue
@@ -40,6 +43,7 @@ class Time:
         self.next = -1  # next (most imminent) event time
         self.last = -1  # last arrival time
         self.num_serv = num_serv
+
     def reset(self):
         self.arrival = -1
         self.completion = [INFINITY] * self.num_serv
@@ -73,7 +77,8 @@ def get_job_old(list_of_queues, t):
     """Selects the next job to serve based on a priority policy"""
     if Parameters.migliorativo:
         for queue in list_of_queues:
-            if queue and queue[0] and (t.current - queue[0].get_id()) > OBIETTIVO_MIGLIORATIVO[queue[0].get_codice() - 1]:
+            if queue and queue[0] and (t.current - queue[0].get_id()) > OBIETTIVO_MIGLIORATIVO[
+                queue[0].get_codice() - 1]:
                 return queue.pop(0)
     else:
         for queue in list_of_queues:
@@ -140,3 +145,41 @@ def max_value(t_analisi: list, t_last1: float, t_last2: float):
         if t_analisi[i].last > maximum:
             maximum = t_analisi[i].last
     return maximum
+
+
+def generate_path_plot(modality, better, white):
+    if modality.lower() == "finite":
+        modality_value = "finite//"
+    elif modality.lower() == "infinite":
+        modality_value = "infinite//"
+    else:
+        raise ValueError("Il valore di modality deve essere 'finite' o 'infinite'.")
+    improvement = "migliorativo//" if "true" == better else "standard//"
+    white_status = "bianchi_dimezzati" if "true" == white else "bianchi_standard"
+    result_string = modality_value + improvement + white_status
+    return result_string
+
+
+def execute_parallel_simulations():
+    commands = [
+        "python3 main.py -m finite -b true ",  # Finita, migliorativa, bianchi normali
+        "python3 main.py -m finite",  # Finita, standard, bianchi normali
+        "python3 main.py -m finite -b true -w true",  # Finita, migliorativa, bianchi dimezzati
+        "python3 main.py -m finite -w true",  # Finita, standard, bianchi dimezzati
+        "python3 main.py -m infinite -b true",  # Infinita, migliorativa, bianchi normali
+        "python3 main.py -m infinite",  # Infinita, standard, bianchi normali
+        "python3 main.py -m infinite -b true -w true",  # Infinita, migliorativa, bianchi dimezzati
+        "python3 main.py -m infinite -w true"  # Infinita, standard, bianchi dimezzati
+    ]
+    # Comando per avviare una nuova finestra del terminale
+    terminal_cmd_template = "start cmd /k {cmd}"
+
+    processes = []
+    for cmd in commands:
+        # Format the command to start a new terminal window with the simulation command
+        terminal_cmd = terminal_cmd_template.format(cmd=cmd)
+        processes.append(subprocess.Popen(terminal_cmd, shell=True))
+
+    # Attendi che tutti i processi siano terminati
+    for p in processes:
+        p.wait()

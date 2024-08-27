@@ -37,8 +37,9 @@ def assign_triage_code():
     codes = [1, 2, 3, 4, 5]
     cumulative_probabilities = [0.063, 0.259, 0.642, 0.948, 1.0]  # Probabilità cumulative
     rand_num = random()
-    # while rand_num > 0.974: PER MIGLIORATIVO CON DIMEZZAMENTO DEI BIANCHI
-    #    rand_num = random()
+    if Parameters.TASSO_DI_INGRESSO != TASSO_DI_INGRESSO:
+        while rand_num > 0.974: #PER MIGLIORATIVO CON DIMEZZAMENTO DEI BIANCHI
+            rand_num = random()
 
     for code, cum_prob in zip(codes, cumulative_probabilities):
         if rand_num < cum_prob:

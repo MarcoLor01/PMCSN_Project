@@ -2,6 +2,7 @@ from utility.Parameters import *
 from utility.Rngs import selectStream, random
 from utility.Rvgs import Exponential, Lognormal
 from utility.rvms import idfTruncatedNormal
+from utility import Parameters
 
 def GetArrival():
     # ---------------------------------------------
@@ -9,8 +10,7 @@ def GetArrival():
     # * ---------------------------------------------
     # */
     selectStream(0)
-
-    return Exponential(1 / TASSO_DI_INGRESSO)
+    return Exponential(1 / Parameters.TASSO_DI_INGRESSO)
 
 
 def GetServiceTriage():
