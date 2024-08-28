@@ -144,22 +144,32 @@ def output_finite(n, modality, better, white):
         for i in range(len(delay_q)):
             mean.append(cumulative_mean(delay_q[i]))
 
+        print("\n\nDelay Time Metrics per Codice (Queue):")
         for i in range(len(delay_q)):
-            print(f"E[Tq] per codice: {i} = {np.mean(delay_q[i])} +/- {delay_times_queue[i]}")
+            print(f"    E[Tq] per codice: {i} = {np.mean(delay_q[i])} +/- {delay_times_queue[i]}")
+        print("\nResponse Time Metrics per Codice (Queue):")
         for i in range(len(response_q)):
-            print(f"E[Ts] per codice: {i} = {np.mean(response_q[i])} +/- {response_time_queue[i]}")
+            print(f"    E[Ts] per codice: {i} = {np.mean(response_q[i])} +/- {response_time_queue[i]}")
+        print("\nUtilization Metrics per Server (Queue):")
         for i in range(len(utilization_q)):
-            print(f"E[Rho] per server: {i} = {np.mean(utilization_q[i])} +/- {utilization_queue[i]}")
+            print(f"    E[Rho] per server: {i} = {np.mean(utilization_q[i])} +/- {utilization_queue[i]}")
+
+        print("\n\nResponse Time Metrics per Codice (Triage):")
         for i in range(len(response_t)):
-            print(f"E[Ts] per codice: {i} = {np.mean(response_t[i])} +/- {response_time_triage[i]}")
+            print(f"    E[Ts] per codice: {i} = {np.mean(response_t[i])} +/- {response_time_triage[i]}")
+        print("\nUtilization Metrics per Server (Triage):")
         for i in range(len(utilization_t)):
-            print(f"E[Rho] per server: {i} = {np.mean(utilization_t[i])} +/- {utilization_triage[i]}")
+            print(f"    E[Rho] per server: {i} = {np.mean(utilization_t[i])} +/- {utilization_triage[i]}")
+
+        print("\n")
         for j in range(len(response_a)):
+            print(f"\nResponse Time Metrics per Codice (Analisi {j}):")
             for i in range(len(response_a[j])):
-                print(f"E[Ts] per codice: {i} = {np.mean(response_a[j][i])} +/- {response_times_analisi[j][i]}")
+                print(f"    E[Ts] per codice: {i} = {np.mean(response_a[j][i])} +/- {response_times_analisi[j][i]}")
         for j in range(len(utilization_a)):
+            print(f"\nUtilization Metrics per Server (Analisi {j}):")
             for i in range(len(utilization_a[j])):
-                print(f"E[Rho] per server: {i} = {np.mean(utilization_a[j][i])} +/- {utilization_analisi[j][i]}")
+                print(f"    E[Rho] per server: {i} = {np.mean(utilization_a[j][i])} +/- {utilization_analisi[j][i]}")
 
     except Exception as e:
         print(f"An error occurred during execution: {e}")
@@ -245,23 +255,32 @@ def output_infinite(modality, better, white):
     for i in range(len(new_utilization_a)):
         utilization_analisi.append(confidence_interval(ALPHA, len(new_utilization_a[i]), new_utilization_a[i]))
 
+    print("\n\nDelay Time Metrics per Codice (Queue):")
     for i in range(len(media_delay_queue)):
-        print(f"E[Tq] per codice: {i} = {media_delay_queue[i]} +/- {delay_times_queue[i]}")
+        print(f"    E[Tq] per codice: {i} = {media_delay_queue[i]:.6f} +/- {delay_times_queue[i]:.6f}")
+    print("\nResponse Time Metrics per Codice (Queue):")
     for i in range(len(media_response_queue)):
-        print(f"E[Ts] per codice: {i} = {media_response_queue[i]} +/- {response_time_queue[i]}")
+        print(f"    E[Ts] per codice: {i} = {media_response_queue[i]:.6f} +/- {response_time_queue[i]:.6f}")
+    print("\nUtilization Metrics per Server (Queue):")
     for i in range(len(media_rho_queue)):
-        print(f"E[Rho] per server: {i} = {media_rho_queue[i]} +/- {utilization_queue[i]}")
-    for i in range(len(media_response_triage)):
-        print(f"E[Ts] per codice: {i} = {media_response_triage[i]} +/- {response_time_triage[i]}")
-    for i in range(len(media_rho_triage)):
-        print(f"E[Rho] per server: {i} = {media_rho_triage[i]} +/- {utilization_triage[i]}")
+        print(f"    E[Rho] per server: {i} = {media_rho_queue[i]:.6f} +/- {utilization_queue[i]:.6f}")
 
+    print("\n\nResponse Time Metrics per Codice (Triage):")
+    for i in range(len(media_response_triage)):
+        print(f"    E[Ts] per codice: {i} = {media_response_triage[i]:.6f} +/- {response_time_triage[i]:.6f}")
+    print("\nUtilization Metrics per Server (Triage):")
+    for i in range(len(media_rho_triage)):
+        print(f"    E[Rho] per server: {i} = {media_rho_triage[i]:.6f} +/- {utilization_triage[i]:.6f}")
+
+    print("\n")
     for j in range(len(media_response_analisi)):
+        print(f"\nResponse Time Metrics per Codice (Analisi {j}):")
         for i in range(len(media_response_analisi[j])):
-            print(f"E[Ts] per codice: {i} = {media_response_analisi[j][i]} +/- {response_times_analisi[j][i]}")
+            print(f"    E[Ts] per codice: {i} = {media_response_analisi[j][i]:.6f} +/- {response_times_analisi[j][i]:.6f}")
     for j in range(len(media_rho_analisi)):
+        print(f"\nUtilization Metrics per Server (Analisi {j}):")
         for i in range(len(media_rho_analisi[j])):
-            print(f"E[Rho] per server: {i} = {media_rho_analisi[j][i]} +/- {utilization_analisi[j][i]}")
+            print(f"    E[Rho] per server: {i} = {media_rho_analisi[j][i]:.6f} +/- {utilization_analisi[j][i]:.6f}")
 
 
 def suddividi_vettore(vettore, n_elementi):
