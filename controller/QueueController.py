@@ -40,7 +40,7 @@ def return_to_queue(job: Job, queue_, t):
     if job.get_codice() == 1:
         queue_[1].append(job)
     else:
-        queue_[2].append(job)
+        queue_[6].append(job)
     job.set_arrival_temp(t_queue.current)
     arrival_queue(t_queue, servers_busy_queue, queue_)
     t_queue.arrival = t.current
@@ -183,6 +183,12 @@ def completion_queue(t, server_busy, queue_q, area):
             area_queue.service_preemption[get_queue(job_to_serve.get_codice(), job_to_serve.get_uscita())] += t.current - job_to_serve.get_interrotto()
 
     if isinstance(job_completed, Job) and job_completed:
+        area.wait_time[job_completed.get_codice() + 1] += t.current - job_completed.get_arrival_temp()
+        area.jobs_complete_color[job_completed.get_codice() + 1] += 1
+        area.delay_time[
+            job_completed.get_codice() + 1] += job_completed.get_queue_time() - job_completed.get_arrival_temp()
+        return job_completed
+
         if job_completed.get_uscita():
             if job_completed.get_codice() == 1:
                 area.wait_time[1] += t.current - job_completed.get_arrival_temp()
@@ -207,28 +213,13 @@ def completion_queue(t, server_busy, queue_q, area):
 
 
 def queue_data(area, t, queue_first):
-    logger.info("STATS FOR INITIAL QUEUE")
-    logger.info(f"Average inter-arrival time: {t.last / sum(area.jobs_completed):.2f}")
-    logger.info(f"Average wait: {sum(area.wait_time) / sum(area.jobs_completed):.2f}")
-    logger.info(f"Average delay: {sum(area.delay_time) / sum(area.jobs_completed):.2f}")
-    logger.info(f"Average service: {(sum(area.wait_time) - sum(area.delay_time)) / sum(area.jobs_completed):.2f}")
-    logger.info(f"Average service no preemptive: {sum(area.service_color) / sum(area.jobs_completed):.2f}")
-
-    logger.info(f"Average number_queue in the node: {sum(area.wait_time) / t.last:.2f}")
-    logger.info(f"Average number_queue in the queue: {sum(area.delay_time) / t.last:.2f}")
-
-    for i in range(NUMERO_DI_SERVER_QUEUE):
-        utilization = area.service[i] / t.last if t.last > 0 else 0
-        avg_service_time = area.service[i] / area.jobs_completed[i] if area.jobs_completed[
-                                                                           i] > 0 else 0
-        logger.info(f"Utilization of server {i + 1}: {utilization:.2f}")
-        logger.info(f"Average service time of server {i + 1}: {avg_service_time:.2f}")
-        logger.info(f"t_last {i + 1}: {t.last:.2f}")
-        logger.info(f"Servizio {i + 1}: {area.service[i]:.2f}")
+    print("\nStats for queue:")
+    utilization = sum(area.service) / (t.last*NUMERO_DI_SERVER_QUEUE)
+    print(f"Rho: {utilization:.6f}")
 
     for i in range(len(queue_first)):
         if area.jobs_complete_color[i] != 0:
-            logger.info(
-                f"Tempo di risposta medio {i + 1}: {area.wait_time[i] / area.jobs_complete_color[i]:.10f}")
-            logger.info(
-                f"Tempo di attesa medio {i + 1}: {area.delay_time[i] / area.jobs_complete_color[i]:.10f}")
+            print(
+                f"E[Tq]: {area.delay_time[i] / area.jobs_complete_color[i]:.6f} min")
+            print(
+                f"E[Ts]: {area.wait_time[i] / area.jobs_complete_color[i]:.6f} min")

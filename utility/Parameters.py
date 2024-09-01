@@ -7,7 +7,7 @@ OBIETTIVO_MIGLIORATIVO = [0, 5, 20, 50, 110, 230]  # MIGLIORATIVO CON TEMPO LIMI
 migliorativo = False
 
 # True = Exponential  False = Truncate G.
-MODALITY = False
+MODALITY = True
 
 INFINITY = float(100.0 * STOP)  # must be much larger than STOP  */
 NUMBER_BATCH = 64

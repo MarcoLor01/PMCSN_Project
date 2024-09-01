@@ -365,7 +365,7 @@ if __name__ == "__main__":
         elif (args.modality is None or args.modality == "infinite") and args.repetition is None:
             print("Inizio simulazione ad orizzonte infinito... ")
             infinite(DEFAULT, Parameters.STOP, batch_size)
-            output_infinite(args.modality, args.better, args.white)
+            #output_infinite(args.modality, args.better, args.white)
         else:
             raise Exception("Argomento dei flag non valido")
 

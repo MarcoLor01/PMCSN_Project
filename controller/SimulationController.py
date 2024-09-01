@@ -134,6 +134,14 @@ def simulation(stop, batch_size = 1, number_valid_batch = 64):
     t_triage.last = t_queue.last = t_Analisi[0].last = t_Analisi[1].last = t_Analisi[2].last = t_Analisi[3].last = \
         t_Analisi[4].last = t_Analisi[5].last = max_value(t_Analisi, t_triage.last, t_queue.last)
 
+    print("Queue", index_queue)
+    print("Analisi", index_Analisi, "Analisi tot ", sum(index_Analisi), "Differenza", index_queue-sum(index_Analisi))
+    for i in range(len(index_Analisi)):
+        print("Analisi %", index_Analisi[i]/index_queue)
+
+    triage_data(area_triage,t_triage,queue_triage)
+    queue_data(area_queue,t_queue,queue)
+    analisi_data(area_Analisi,t_Analisi,queue_Analisi)
     # print("Ci sono state: ", sum(violations), "violazioni su ", analisi_1_volta, "ovvero: ",
     #      (sum(violations) / analisi_1_volta))
     return stat(t_triage, area_triage), stat(t_queue, area_queue), stats(t_Analisi, area_Analisi), batch_res
@@ -158,11 +166,10 @@ def processa_completamento_triage():
     job_completed = completion_triage(t_triage, servers_busy_triage, queue_triage, area_triage)
     job_completed.set_tempo_rimanente(0)
 
-    if job_completed.get_codice() == 1 or job_completed.get_codice() == 2 or scegli_azione():
+    if scegli_azione():
         number_queue += 1
         pass_to_queue(job_completed, queue)
         t_queue.arrival = check_arrival(t_triage.arrival + Parameters.STOP)
-
 
 def control_job_violation(job_to_control: Job):
     if (job_to_control.get_queue_time() - job_to_control.get_arrival_temp()) > OBIETTIVO[
@@ -266,7 +273,7 @@ def scegli_azione():
     global departed_job
 
     selectStream(3)
-    if random() > 0.01:
+    if random() > 0.02:
         return True
     else:
         departed_job += 1

@@ -8,13 +8,9 @@ logging.basicConfig(level=logging.INFO, format='%(message)s')
 logger = logging.getLogger(__name__)
 
 # ECG = 1, EMOCROMO = 2, TAC = 3, RADIOGRAFIA = 4, ECOGRAFIA = 5, ALTRO = 6
-NUMERO_DI_SERVER_ANALISI = [2, 2, 2, 2, 2, 2]
 NUMERO_DI_ANALISI = 6
 
 server_list = [[] for _ in range(NUMERO_DI_ANALISI)]
-
-for i in range(len(NUMERO_DI_SERVER_ANALISI)):
-    server_list[i] = [[Job] for _ in range(NUMERO_DI_SERVER_ANALISI[i])]
 
 # Inizializzazione delle code rosse
 queueRed_a = [[] for _ in range(NUMERO_DI_ANALISI)]
@@ -33,6 +29,7 @@ def get_analisi():
 
 
 def determina_numero_analisi():
+    return 1
     # Probabilità cumulative per il numero di analisi da fare (0-6)
     selectStream(5)
     num_analisi = [0, 1, 2, 3, 4, 5, 6]
@@ -54,13 +51,13 @@ frequenze_assolute = {
     5: {'ECG': 110, 'Ecografia': 50, 'Emocromo': 130, 'Radiografia': 80, 'Tac': 25, 'Altro': 105},
     6: {'ECG': 120, 'Ecografia': 57, 'Emocromo': 143, 'Radiografia': 95, 'Tac': 30, 'Altro': 155}
 }
-
+# ECG = 1, EMOCROMO = 2, TAC = 3, RADIOGRAFIA = 4, ECOGRAFIA = 5, ALTRO = 6
 analisi_disponibili = ['ECG', 'Emocromo', 'Tac', 'Radiografia', 'Ecografia', 'Altro']
 
 
 def scegli_analisi(numero_analisi):
     selectStream(6)
-    analisi_frequenze = frequenze_assolute[numero_analisi]
+    analisi_frequenze = frequenze_assolute[6]
     totale_frequenze = sum(analisi_frequenze.values())
     cumulative_prob = {}
     cumulative = 0

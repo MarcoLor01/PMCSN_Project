@@ -33,6 +33,7 @@ def give_code():
 
 
 def assign_triage_code():
+    return 5
     # Lista dei codici corrispondenti: 1 ROSSO, 2 ARANCIONE, 3 BLU, 4 VERDE, 5 BIANCO
     codes = [1, 2, 3, 4, 5]
     cumulative_probabilities = [0.063, 0.259, 0.642, 0.948, 1.0]  # Probabilità cumulative
@@ -153,24 +154,14 @@ def completion_triage(t, server_busy, queue_t, area):
 
 def triage_data(area, t, queue_t):
     total_jobs_completed = sum(area.jobs_completed)
-    logger.info("STATS FOR TRIAGE")
-    logger.info(f"Average inter-arrival time: {t.last / total_jobs_completed:.2f}")
-    logger.info(f"Average wait: {area.node / total_jobs_completed:.2f}")
-    logger.info(f"Average delay: {area.queue / total_jobs_completed:.2f}")
-    logger.info(f"Average delay NOW: {sum(area.delay_time) / total_jobs_completed:.2f}")
-    logger.info(f"Average service time: {(sum(area.service) + area.service_preemptive) / total_jobs_completed:.2f}")
-    logger.info(f"Average number in the node: {area.node / t.last:.2f}")
-    logger.info(f"Average number in the queue: {area.queue / t.last:.2f}")
-    logger.info(f"T last: {t.last:.2f}")
+    print("\n\n\n\n\n\n\n\n\n\nStats for triage:")
+
 
     for i in range(NUMERO_DI_SERVER_TRIAGE):
         utilization = area.service[i] / t.last if t.last > 0 else 0
-        logger.info(f"Utilization of server {i + 1}: {utilization:.2f}")
-    for i in range(len(queue_t)):
-        if area.jobs_complete_color[i] != 0:
-            logger.info(f"Tempo di risposta medio {i + 1}: {area.wait_time[i] / area.jobs_complete_color[i]:.10f}")
-            logger.info(f"Tempo di attesa medio {i + 1}: {area.delay_time[i] / area.jobs_complete_color[i]:.10f}")
+        print(f"Rho: {utilization:.6f}")
 
+    print(f"E[Ts]: {area.node / total_jobs_completed:.6f} min")
 
 def triage_data_rec(area, t, queue_t):
     logger.info(f"Average wait: {sum(area.wait_time) / sum(area.jobs_completed):.2f}")

@@ -89,6 +89,7 @@ def pass_to_analisi(job, queue1, t1):
     t_Analisi[analisi].arrival = t1.last
     t_Analisi[analisi].arrival = check_arrival(t1.arrival + Parameters.STOP)
     arrival_analisi(t_Analisi[analisi], servers_busy_Analisi[analisi], queue1[analisi], analisi)
+    job.set_arrival_temp(t1.current)
     return analisi
 
 
@@ -191,23 +192,10 @@ def probability_analisi(volte_analisi):
 
 
 def single_analisi_data(area, t, queue_first, index):
-    logger.info(f"STATS FOR ANALISI: {index:.0f}")
-    logger.info(
-        f"Average interarrival time: {t.last / sum(area.jobs_completed) if sum(area.jobs_completed) > 0 else 0:.2f}")
-    logger.info(f"Average wait: {area.node / sum(area.jobs_completed) if sum(area.jobs_completed) > 0 else 0:.2f}")
-    logger.info(f"Average delay: {area.queue / sum(area.jobs_completed) if sum(area.jobs_completed) > 0 else 0:.2f}")
-    logger.info(
-        f"Average service time: {sum(area.service) / sum(area.jobs_completed) if sum(area.jobs_completed) > 0 else 0:.2f}")
-    logger.info(f"Average number_triage in the node: {area.node / t.last:.8f}")
-    logger.info(f"Average number_triage in the queue: {area.queue / t.last:.8f}")
-    logger.info(f"T last: {t.last:.2f}")
+    print(f"\nStats for {analisi_disponibili[index]}:")
+    utilization = sum(area.service) / (t.last * NUMERO_SERVER_ANALISI[index])
+    print(f"Rho: {utilization:.6f}")
 
-    for i in range(NUMERO_SERVER_ANALISI[index]):
-        utilization = area.service[i] / t.last if t.last > 0 else 0
-        avg_service_time = area.service[i] / area.jobs_completed[i] if area.jobs_completed[i] > 0 else 0
-        logger.info(f"Utilization of server {i + 1}: {utilization:.8f}")
-        logger.info(f"Average service time of server {i + 1}: {avg_service_time:.2f}")
     for i in range(len(queue_first)):
         if area.jobs_complete_color[i] != 0:
-            logger.info(f"Attesa media {i + 1}: {area.wait_time[i] / area.jobs_complete_color[i]}")
-            logger.info(f"Tempo di attesa medio {i + 1}: {area.delay_time[i] / area.jobs_complete_color[i]:.10f}")
+            print(f"E[Ts]: {area.wait_time[i] / area.jobs_complete_color[i]:.6f} min")
