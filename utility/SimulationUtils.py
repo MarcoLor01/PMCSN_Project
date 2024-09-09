@@ -70,6 +70,25 @@ def plot_cumulative_means(cumulative_means, stationary_value, ylabel, title, fil
     plt.savefig(f'plots/{filename}.png')
     plt.close()
 
+
+def plot_popolation(popolation_queue, ylabel, filename):
+    plt.figure(figsize=(10, 6))
+    plt.plot(popolation_queue, label="Population")
+    plt.xlabel('Minutes')
+    plt.ylabel("Popolazione per la coda "+ylabel)
+    plt.title("Andamento della popolazione nella coda " + ylabel)
+    plt.legend()
+    plt.grid(True)
+
+    # Create folder 'plots' if it doesn't exist
+    if not os.path.exists('plots'):
+        os.makedirs('plots')
+
+    # Save plots
+    plt.savefig(f'plots/{filename}.png')
+    plt.close()
+
+
 def stat(t: Time, area: Track) -> tuple[list[float], list[float], list[float]]:
     utilization = []
     response_time = []

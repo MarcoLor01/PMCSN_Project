@@ -36,6 +36,9 @@ def simulation(stop, batch_size = 1, number_valid_batch = 64):
     NUMERO_CODE_A = 2
     current_batch = 0
     batch_number = 0
+    graph_data = [[],[],[],[],[],[],[]]
+    campionamento = 100
+    valore_campionamento_corrente = 0
 
     jobs_complete_batch_triage = [0.0] * NUMERO_CODICI
     delay_times_batch_triage = [0.0] * NUMERO_CODICI
@@ -78,6 +81,10 @@ def simulation(stop, batch_size = 1, number_valid_batch = 64):
         monitor_simulation(prox_operazione, stop, printed_status)
         switch(prox_operazione, t_triage, t_queue, t_Analisi)
 
+        if prox_operazione-valore_campionamento_corrente > campionamento:
+            for i in range(len(queue)):
+                graph_data[i].append(len(queue[i]))
+            valore_campionamento_corrente = prox_operazione
         if (batch_size > 1 and departed_job % batch_size == 0 and departed_job != 0) or (
                 batch_size == 1 and departed_job % 100 == 0 and departed_job != 0):
 
@@ -136,7 +143,7 @@ def simulation(stop, batch_size = 1, number_valid_batch = 64):
 
     # print("Ci sono state: ", sum(violations), "violazioni su ", analisi_1_volta, "ovvero: ",
     #      (sum(violations) / analisi_1_volta))
-    return stat(t_triage, area_triage), stat(t_queue, area_queue), stats(t_Analisi, area_Analisi), batch_res
+    return stat(t_triage, area_triage), stat(t_queue, area_queue), stats(t_Analisi, area_Analisi), batch_res, graph_data
 
 
 def processa_arrivo_triage():
@@ -158,7 +165,7 @@ def processa_completamento_triage():
     job_completed = completion_triage(t_triage, servers_busy_triage, queue_triage, area_triage)
     job_completed.set_tempo_rimanente(0)
 
-    if job_completed.get_codice() == 1 or job_completed.get_codice() == 2 or scegli_azione():
+    if scegli_azione():
         number_queue += 1
         pass_to_queue(job_completed, queue)
         t_queue.arrival = check_arrival(t_triage.arrival + Parameters.STOP)
@@ -266,7 +273,7 @@ def scegli_azione():
     global departed_job
 
     selectStream(3)
-    if random() > 0.01:
+    if random() > 0.02:
         return True
     else:
         departed_job += 1

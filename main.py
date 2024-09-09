@@ -1,13 +1,15 @@
 import numpy as np
 
+from controller.ExamsQueueController import analisi_disponibili
 from controller.SimulationController import simulation, violation, violations
 from controller.TriageController import total_job
 from utility import Parameters
-from utility.SimulationUtils import write_on_csv, confidence_interval, cumulative_mean, plot_cumulative_means
+from utility.SimulationUtils import write_on_csv, confidence_interval, cumulative_mean, plot_cumulative_means, \
+    plot_popolation
 import argparse
 from utility.Parameters import NUMERO_DI_SERVER_QUEUE, NUMERO_DI_SERVER_TRIAGE
 from utility.Rngs import plantSeeds, DEFAULT
-from utility.Utils import generate_path_plot, execute_parallel_simulations
+from utility.Utils import generate_path_plot, execute_parallel_simulations, colori, code_colori
 
 NUMERO_CODICI = 5
 NUMERO_ANALISI = 6
@@ -17,6 +19,7 @@ RESPONSE_TIME_QUEUE = []
 DELAY_TIME_QUEUE = []
 DELAY_TIME_QUEUES = []
 RESPONSE_TIME_ANALISI = []
+QUEUE_POPOLATION = []
 
 RHO_TRIAGE = []
 RHO_QUEUE = []
@@ -29,13 +32,13 @@ def finite(seed, n, stop):
     plantSeeds(seed)
     plot_number_i = 3
     for i in range(n):
-
         try:
-            print("Eseguo la simulazione n.",i)
+            print("Eseguo la simulazione n.", i)
             stats = simulation(stop)
             response_times_triage, utilization_triage = stats[0][1], stats[0][0]
             response_times_queue, delay_times_queue, utilization_queue = stats[1][1], stats[1][2], stats[1][0]
             response_times_analisi, utilization_analisi = stats[2][1], stats[2][0]
+            graph_data = stats[4]
             RESPONSE_TIME_TRIAGE.append(response_times_triage)
             RESPONSE_TIME_QUEUE.append(response_times_queue)
             DELAY_TIME_QUEUE.append(delay_times_queue)
@@ -43,14 +46,17 @@ def finite(seed, n, stop):
             RHO_TRIAGE.append(utilization_triage)
             RHO_QUEUE.append(utilization_queue)
             RHO_ANALISI.append(utilization_analisi)
+            for j in range(len(QUEUE_POPOLATION)):
+                for k in range(95):
+                    QUEUE_POPOLATION[j][k] += graph_data[j][k] / n
+            if i == 0:
+                QUEUE_POPOLATION.extend([[x / n for x in lista] for lista in graph_data])
             if i == plot_number_i:
                 batch_res = stats[3]
                 delay_times_queue = batch_res[1][2]
                 DELAY_TIME_QUEUES.extend(delay_times_queue)
-
         except Exception as e:
             print(f"An error occurred during execution: {e}")
-
 
 def infinite(seed, stop, batch_size=1.0):
     try:
@@ -60,6 +66,7 @@ def infinite(seed, stop, batch_size=1.0):
         response_times_triage, utilization_triage = batch_res[0][1], batch_res[0][0]
         response_times_queue, delay_times_queue, utilization_queue = batch_res[1][1], batch_res[1][2], batch_res[1][0]
         response_times_analisi, utilization_analisi = batch_res[2][1], batch_res[2][0]
+        graph_data = stats[4]
 
         RESPONSE_TIME_TRIAGE.extend(response_times_triage)
         RESPONSE_TIME_QUEUE.extend(response_times_queue)
@@ -69,6 +76,8 @@ def infinite(seed, stop, batch_size=1.0):
         RHO_TRIAGE.extend(utilization_triage)
         RHO_QUEUE.extend(utilization_queue)
         RHO_ANALISI.extend(utilization_analisi)
+
+        QUEUE_POPOLATION.extend(graph_data)
 
         #write_on_csv(delay_times_queue, 1)
 
@@ -96,6 +105,9 @@ def output_finite(n, modality, better, white):
         delay_times_queue = confidence_interval(ALPHA, n, DELAY_TIME_QUEUE)
         response_times_analisi = []
         utilization_analisi = []
+        for i in range(len(QUEUE_POPOLATION)):
+            plot_popolation(QUEUE_POPOLATION[i], str(code_colori.get(i)),
+                            '/' + generate_path_plot(modality, better, white) + '/popolazione_media_coda_' + str(i))
 
         for i in range(len(new_response_a)):
             response_times_analisi.append(confidence_interval(ALPHA, n, new_response_a[i]))
@@ -117,19 +129,20 @@ def output_finite(n, modality, better, white):
         for i in range(len(violation)):
             if len(violation[i]) != 0:
                 print("Ci sono state mediamente ", int(violations[i] / n), "violazioni in ogni ripetizione per "
-                                                                           "il codice", i,
+                                                                           "il colore", colori.get(i + 1),
                       ". La media per singola violazione è di: ", np.mean(violation[i]), ".\nCon una percentuale di "
                                                                                          "job che violano il QoS "
                                                                                          "di: ", violations[
                           i] / total_job[i], "%\n")
             else:
-                print("Il codice: ", i, " non ha sforamenti.\n")
+                print("Il colore: ", colori.get(i + 1), " non ha sforamenti.\n")
 
         for i in range(len(means)):
             plot_cumulative_means(means[i], media_delay_queue_finite[i],
                                   'Cumulative Mean Delay Time (Queue)' + str(i),
                                   'Cumulative Mean Response Time over Batches (Monitor Centre)',
-                                  '/' + generate_path_plot(modality, better, white) + '/cumulative_delay_time_queue_' + str(i))
+                                  '/' + generate_path_plot(modality, better,
+                                                           white) + '/cumulative_delay_time_queue_' + str(i))
 
         response_q = [list(i) for i in zip(*RESPONSE_TIME_QUEUE)]
         utilization_q = [list(i) for i in zip(*RHO_QUEUE)]
@@ -144,30 +157,28 @@ def output_finite(n, modality, better, white):
         for i in range(len(delay_q)):
             mean.append(cumulative_mean(delay_q[i]))
 
-        print("\n\nDelay Time Metrics per Codice (Queue):")
+        print("\n\nDelay Time Metrics Queue:")
         for i in range(len(delay_q)):
-            print(f"    E[Tq] per codice: {i} = {np.mean(delay_q[i])} +/- {delay_times_queue[i]}")
-        print("\nResponse Time Metrics per Codice (Queue):")
+            print(f"    E[Tq] per coda: {i} = {np.mean(delay_q[i])} +/- {delay_times_queue[i]}")
+        print("\nResponse Time Metrics Queue:")
         for i in range(len(response_q)):
-            print(f"    E[Ts] per codice: {i} = {np.mean(response_q[i])} +/- {response_time_queue[i]}")
-        print("\nUtilization Metrics per Server (Queue):")
+            print(f"    E[Ts] per coda: {i} = {np.mean(response_q[i])} +/- {response_time_queue[i]}")
+        print("\nUtilization Metrics Queue:")
         for i in range(len(utilization_q)):
-            print(f"    E[Rho] per server: {i} = {np.mean(utilization_q[i])} +/- {utilization_queue[i]}")
+            print(f"    Rho per server: {i} = {np.mean(utilization_q[i])} +/- {utilization_queue[i]}")
 
-        print("\n\nResponse Time Metrics per Codice (Triage):")
+        print("\n\nResponse Time Metrics Triage:")
         for i in range(len(response_t)):
-            print(f"    E[Ts] per codice: {i} = {np.mean(response_t[i])} +/- {response_time_triage[i]}")
-        print("\nUtilization Metrics per Server (Triage):")
+            print(f"    E[Ts] per coda: {i} = {np.mean(response_t[i])} +/- {response_time_triage[i]}")
+        print("\nUtilization Metrics Triage:")
         for i in range(len(utilization_t)):
-            print(f"    E[Rho] per server: {i} = {np.mean(utilization_t[i])} +/- {utilization_triage[i]}")
+            print(f"    Rho per server: {i} = {np.mean(utilization_t[i])} +/- {utilization_triage[i]}")
 
         print("\n")
         for j in range(len(response_a)):
-            print(f"\nResponse Time Metrics per Codice (Analisi {j}):")
+            print(f"\nResponse Time Metrics {analisi_disponibili[j]}:")
             for i in range(len(response_a[j])):
-                print(f"    E[Ts] per codice: {i} = {np.mean(response_a[j][i])} +/- {response_times_analisi[j][i]}")
-        for j in range(len(utilization_a)):
-            print(f"\nUtilization Metrics per Server (Analisi {j}):")
+                print(f"    E[Ts] per coda: {i} = {np.mean(response_a[j][i])} +/- {response_times_analisi[j][i]}")
             for i in range(len(utilization_a[j])):
                 print(f"    E[Rho] per server: {i} = {np.mean(utilization_a[j][i])} +/- {utilization_analisi[j][i]}")
 
@@ -202,7 +213,9 @@ def output_infinite(modality, better, white):
     response_t_vect = suddividi_vettore(RESPONSE_TIME_TRIAGE, 5)
     rho_t_vect = suddividi_vettore(RHO_TRIAGE, NUMERO_DI_SERVER_TRIAGE)
     rho_q_vect = suddividi_vettore(RHO_QUEUE, NUMERO_DI_SERVER_QUEUE)
-
+    for i in range(len(QUEUE_POPOLATION)):
+        plot_popolation(QUEUE_POPOLATION[i], str(code_colori.get(i)),
+                        '/' + generate_path_plot(modality, better, white) + '/popolazione_media_coda_' + str(i))
     mean = []
     delay_q = [list(i) for i in zip(*delay_q_vect)]
 
@@ -212,26 +225,26 @@ def output_infinite(modality, better, white):
     for i in range(len(violation)):
         if len(violation[i]) != 0:
             print("Ci sono state ", int(violations[i]), "violazioni per "
-                                                        "il codice", i,
+                                                        "il colore", colori.get(i + 1),
                   ". La media per singola violazione è di: ", np.mean(violation[i]), ".\nCon una percentuale di "
                                                                                      "job che violano il QoS "
                                                                                      "di: ", violations[
                       i] / total_job[i], "%\n")
         else:
-            print("Il codice: ", i, " non ha sforamenti.\n")
+            print("Il colore: ", colori.get(i + 1), " non ha sforamenti.\n")
 
     for i in range(len(mean)):
         plot_cumulative_means(mean[i], media_delay_queue[i],
                               'Cumulative Mean Delay Time (Queue)' + str(i),
                               'Cumulative Mean Response Time over Batches (Monitor Centre)',
-                              '/' + generate_path_plot(modality, better, white) + '/cumulative_delay_time_queue_' + str(i))
+                              '/' + generate_path_plot(modality, better, white) + '/cumulative_delay_time_queue_' + str(
+                                  i))
 
     delay_times_queue = confidence_interval(ALPHA, len(delay_q_vect), delay_q_vect)
     response_time_queue = confidence_interval(ALPHA, len(response_q_vect), response_q_vect)
     utilization_queue = confidence_interval(ALPHA, len(rho_q_vect), rho_q_vect)
     utilization_triage = confidence_interval(ALPHA, len(rho_t_vect), rho_t_vect)
     response_time_triage = confidence_interval(ALPHA, len(response_t_vect), response_t_vect)
-
 
     new_utilization_a = []
     new_response_a = []
@@ -255,30 +268,30 @@ def output_infinite(modality, better, white):
     for i in range(len(new_utilization_a)):
         utilization_analisi.append(confidence_interval(ALPHA, len(new_utilization_a[i]), new_utilization_a[i]))
 
-    print("\n\nDelay Time Metrics per Codice (Queue):")
+    print("\n\nDelay Time Metrics Queue:")
     for i in range(len(media_delay_queue)):
-        print(f"    E[Tq] per codice: {i} = {media_delay_queue[i]:.6f} +/- {delay_times_queue[i]:.6f}")
-    print("\nResponse Time Metrics per Codice (Queue):")
+        print(f"    E[Tq] per coda: {i} = {media_delay_queue[i]:.6f} +/- {delay_times_queue[i]:.6f}")
+    print("\nResponse Time Metrics Queue:")
     for i in range(len(media_response_queue)):
-        print(f"    E[Ts] per codice: {i} = {media_response_queue[i]:.6f} +/- {response_time_queue[i]:.6f}")
-    print("\nUtilization Metrics per Server (Queue):")
+        print(f"    E[Ts] per coda: {i} = {media_response_queue[i]:.6f} +/- {response_time_queue[i]:.6f}")
+    print("\nUtilization Metrics Queue:")
     for i in range(len(media_rho_queue)):
         print(f"    E[Rho] per server: {i} = {media_rho_queue[i]:.6f} +/- {utilization_queue[i]:.6f}")
 
-    print("\n\nResponse Time Metrics per Codice (Triage):")
+    print("\n\nResponse Time Metrics Triage:")
     for i in range(len(media_response_triage)):
-        print(f"    E[Ts] per codice: {i} = {media_response_triage[i]:.6f} +/- {response_time_triage[i]:.6f}")
-    print("\nUtilization Metrics per Server (Triage):")
+        print(f"    E[Ts] per coda: {i} = {media_response_triage[i]:.6f} +/- {response_time_triage[i]:.6f}")
+    print("\nUtilization Metrics Triage:")
     for i in range(len(media_rho_triage)):
         print(f"    E[Rho] per server: {i} = {media_rho_triage[i]:.6f} +/- {utilization_triage[i]:.6f}")
 
     print("\n")
     for j in range(len(media_response_analisi)):
-        print(f"\nResponse Time Metrics per Codice (Analisi {j}):")
+        print(f"\nResponse Time Metrics {analisi_disponibili[j]}:")
         for i in range(len(media_response_analisi[j])):
-            print(f"    E[Ts] per codice: {i} = {media_response_analisi[j][i]:.6f} +/- {response_times_analisi[j][i]:.6f}")
-    for j in range(len(media_rho_analisi)):
-        print(f"\nUtilization Metrics per Server (Analisi {j}):")
+            print(
+                f"    E[Ts] per coda: {i} = {media_response_analisi[j][i]:.6f} +/- {response_times_analisi[j][i]:.6f}")
+        print(f"\nUtilization Metrics {analisi_disponibili[j]}:")
         for i in range(len(media_rho_analisi[j])):
             print(f"    E[Rho] per server: {i} = {media_rho_analisi[j][i]:.6f} +/- {utilization_analisi[j][i]:.6f}")
 
@@ -326,10 +339,13 @@ if __name__ == "__main__":
     batch_size = 512
     numbers_repetition = 64
     parser = argparse.ArgumentParser(description="Scelta modalità di simulazione")
-    parser.add_argument('-m', '--modality', type=str, help="Inserire -m finite per simulazione finita, lasciare vuoto per infinita")
+    parser.add_argument('-m', '--modality', type=str,
+                        help="Inserire -m finite per simulazione finita, lasciare vuoto per infinita")
     parser.add_argument('-r', '--repetition', type=int, help="Inserire -m seguito dal numero di ripetizioni")
-    parser.add_argument('-b', '--better', type=str, help="Inserire -b seguito da true per attivare il modello migliorativo")
-    parser.add_argument('-w', '--white', type=str, help="Inserire -w seguito da true per dimezzare il numero di bianchi")
+    parser.add_argument('-b', '--better', type=str,
+                        help="Inserire -b seguito da true per attivare il modello migliorativo")
+    parser.add_argument('-w', '--white', type=str,
+                        help="Inserire -w seguito da true per dimezzare il numero di bianchi")
     parser.add_argument('-f', '--full', action='store_true', help="Esegue simulazioni parallele finite e infinite")
 
     args = parser.parse_args()
@@ -368,4 +384,3 @@ if __name__ == "__main__":
             output_infinite(args.modality, args.better, args.white)
         else:
             raise Exception("Argomento dei flag non valido")
-

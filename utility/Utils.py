@@ -183,3 +183,21 @@ def execute_parallel_simulations():
     # Attendi che tutti i processi siano terminati
     for p in processes:
         p.wait()
+
+colori = {
+    1: "Rosso",
+    2: "Arancione",
+    3: "Azzurro",
+    4: "Verde",
+    5: "Bianco"
+}
+
+code_colori = {
+    0: "rossa",
+    1: "rossa post prima visita",
+    2: "per altri codici post prima visita",
+    3: "arancione",
+    4: "azzurra",
+    5: "verde",
+    6: "bianca"
+}
