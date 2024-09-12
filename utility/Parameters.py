@@ -1,6 +1,8 @@
 # Costanti per la simulazione del sistema
 START = 0.0
-STOP = 7 * 1440.0 * 40
+# foto * 10 32768
+# 512 000
+STOP = 7 * 1440.0 * 40 * 58
 OBIETTIVO = [0, 15, 30, 60, 120, 240]
 OBIETTIVO_MIGLIORATIVO = [0, 5, 20, 50, 110, 230]  # MIGLIORATIVO CON TEMPO LIMITE = OBIETTIVO - 10 MINUTI
 

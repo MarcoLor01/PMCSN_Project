@@ -36,14 +36,16 @@ def batch_means(data, batch_size):
 
 
 def write_on_csv(input_list, num_code):
-    i = num_code
-    with open("acs.dat", mode='w', newline='') as file:
-        writer = csv.writer(file)
-        for element in input_list:
-            if not i % 7:
-                writer.writerow([element])
-            i += 1
-
+    try:
+        i = num_code
+        with open("acs.dat", mode='w', newline='') as file:
+            writer = csv.writer(file)
+            for element in input_list:
+                if not i % 7:
+                    writer.writerow([element])
+                i += 1
+    except Exception as e:
+        print(f"An error occurred during execution: {e}")
 
 def cumulative_mean(data):
     return np.cumsum(data) / np.arange(1, len(data) + 1)
@@ -55,7 +57,7 @@ def plot_cumulative_means(cumulative_means, stationary_value, ylabel, title, fil
     plt.xlabel('Batch Number')
 
     # Plot a horizontal line for the stationary value
-    plt.axhline(stationary_value, color='orange', label='Mean of means')
+    plt.axhline(stationary_value, color='orange', label='Valore medio')
 
     plt.ylabel(ylabel)
     plt.title(title)
@@ -70,6 +72,24 @@ def plot_cumulative_means(cumulative_means, stationary_value, ylabel, title, fil
     plt.savefig(f'plots/{filename}.png')
     plt.close()
 
+def graph_data_plot(graph_data, seed, n, filename):
+    for j in range(7):
+        plt.figure(figsize=(10, 6))
+
+        for i in range(n):
+            plt.plot(graph_data[i][j], label=seed[i])
+        plt.title("Analisi del transiente")
+        plt.xlabel('Ore')
+        plt.ylabel("Tempo di attesa per la coda " + code_colori.get(j))
+        plt.legend()
+        plt.grid(True)
+        if not os.path.exists('plots'):
+            os.makedirs('plots')
+
+        # Save plots
+        plt.savefig(f'plots/{filename + str(j)}.png')
+        plt.show()
+        plt.close()
 
 def plot_popolation(popolation_queue, ylabel, filename):
     plt.figure(figsize=(10, 6))

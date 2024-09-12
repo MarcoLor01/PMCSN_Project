@@ -14,7 +14,7 @@ violation = [[], [], [], [], []]
 #plantSeeds(DEFAULT)
 
 
-def simulation(stop, batch_size = 1, number_valid_batch = 64):
+def simulation(stop, batch_size = 1, number_valid_batch = 512):
     global number_Analisi, index_Analisi, queue_Analis, analisi_1_volta, analisi_2_volte, analisi_piu_3, analisi_3_volte, departed_job
     global arrivalTemp
     global number_triage, index_triage, queue_triage
@@ -37,7 +37,7 @@ def simulation(stop, batch_size = 1, number_valid_batch = 64):
     current_batch = 0
     batch_number = 0
     graph_data = [[],[],[],[],[],[],[]]
-    campionamento = 100
+    campionamento = 60
     valore_campionamento_corrente = 0
 
     jobs_complete_batch_triage = [0.0] * NUMERO_CODICI
@@ -82,8 +82,13 @@ def simulation(stop, batch_size = 1, number_valid_batch = 64):
         switch(prox_operazione, t_triage, t_queue, t_Analisi)
 
         if prox_operazione-valore_campionamento_corrente > campionamento:
-            for i in range(len(queue)):
-                graph_data[i].append(len(queue[i]))
+            for i in range(len(area_queue.jobs_complete_color)):
+                if area_queue.jobs_complete_color[i] != 0:
+                    graph_data[i].append(area_queue.delay_time[i] / area_queue.jobs_complete_color[i])
+                else:
+                    graph_data[i].append(0.0)
+
+                        #graph_data[i].append(len(queue[i]))
             valore_campionamento_corrente = prox_operazione
         if (batch_size > 1 and departed_job % batch_size == 0 and departed_job != 0) or (
                 batch_size == 1 and departed_job % 100 == 0 and departed_job != 0):
@@ -115,7 +120,7 @@ def simulation(stop, batch_size = 1, number_valid_batch = 64):
                 response_batch_analisi += res_a[1]
                 delay_batch_analisi += res_a[2]
                 batch_number += 1
-
+                print("Batch numero: ", batch_number)
             current_batch = t_queue.current
 
             jobs_complete_batch_triage = area_triage.jobs_complete_color.copy()

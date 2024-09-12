@@ -5,10 +5,10 @@ from controller.SimulationController import simulation, violation, violations
 from controller.TriageController import total_job
 from utility import Parameters
 from utility.SimulationUtils import write_on_csv, confidence_interval, cumulative_mean, plot_cumulative_means, \
-    plot_popolation
+    plot_popolation, graph_data_plot
 import argparse
 from utility.Parameters import NUMERO_DI_SERVER_QUEUE, NUMERO_DI_SERVER_TRIAGE
-from utility.Rngs import plantSeeds, DEFAULT
+from utility.Rngs import plantSeeds, DEFAULT, getSeed
 from utility.Utils import generate_path_plot, execute_parallel_simulations, colori, code_colori
 
 NUMERO_CODICI = 5
@@ -20,7 +20,8 @@ DELAY_TIME_QUEUE = []
 DELAY_TIME_QUEUES = []
 RESPONSE_TIME_ANALISI = []
 QUEUE_POPOLATION = []
-
+seeds = []
+graph_data = []
 RHO_TRIAGE = []
 RHO_QUEUE = []
 RHO_ANALISI = []
@@ -33,12 +34,13 @@ def finite(seed, n, stop):
     plot_number_i = 3
     for i in range(n):
         try:
+            seeds.append(getSeed())
             print("Eseguo la simulazione n.", i)
             stats = simulation(stop)
             response_times_triage, utilization_triage = stats[0][1], stats[0][0]
             response_times_queue, delay_times_queue, utilization_queue = stats[1][1], stats[1][2], stats[1][0]
             response_times_analisi, utilization_analisi = stats[2][1], stats[2][0]
-            graph_data = stats[4]
+            graph_data.append(stats[4])
             RESPONSE_TIME_TRIAGE.append(response_times_triage)
             RESPONSE_TIME_QUEUE.append(response_times_queue)
             DELAY_TIME_QUEUE.append(delay_times_queue)
@@ -46,17 +48,17 @@ def finite(seed, n, stop):
             RHO_TRIAGE.append(utilization_triage)
             RHO_QUEUE.append(utilization_queue)
             RHO_ANALISI.append(utilization_analisi)
-            for j in range(len(QUEUE_POPOLATION)):
-                for k in range(95):
-                    QUEUE_POPOLATION[j][k] += graph_data[j][k] / n
-            if i == 0:
-                QUEUE_POPOLATION.extend([[x / n for x in lista] for lista in graph_data])
+            #for j in range(len(QUEUE_POPOLATION)):
+            #    for k in range(95):
+            #        QUEUE_POPOLATION[j][k] += graph_data[j][k] / n
+            #if i == 0:
+            #    QUEUE_POPOLATION.extend([[x / n for x in lista] for lista in graph_data])
             if i == plot_number_i:
                 batch_res = stats[3]
                 delay_times_queue = batch_res[1][2]
                 DELAY_TIME_QUEUES.extend(delay_times_queue)
         except Exception as e:
-            print(f"An error occurred during execution: {e}")
+            print(f"An error during finite dio cane: {e}")
 
 def infinite(seed, stop, batch_size=1.0):
     try:
@@ -79,7 +81,7 @@ def infinite(seed, stop, batch_size=1.0):
 
         QUEUE_POPOLATION.extend(graph_data)
 
-        #write_on_csv(delay_times_queue, 1)
+        write_on_csv(delay_times_queue, 1)
 
     except Exception as e:
         print(f"An error occurred during execution: {e}")
@@ -87,6 +89,7 @@ def infinite(seed, stop, batch_size=1.0):
 
 def output_finite(n, modality, better, white):
     try:
+        graph_data_plot(graph_data, seeds, 5, generate_path_plot(modality, better, white) + '/cumulative_delay_time_queue_transient_')
         new_utilization_a = []
         new_response_a = []
         # Itera attraverso la lista originale per estrarre i valori
@@ -213,6 +216,7 @@ def output_infinite(modality, better, white):
     response_t_vect = suddividi_vettore(RESPONSE_TIME_TRIAGE, 5)
     rho_t_vect = suddividi_vettore(RHO_TRIAGE, NUMERO_DI_SERVER_TRIAGE)
     rho_q_vect = suddividi_vettore(RHO_QUEUE, NUMERO_DI_SERVER_QUEUE)
+
     for i in range(len(QUEUE_POPOLATION)):
         plot_popolation(QUEUE_POPOLATION[i], str(code_colori.get(i)),
                         '/' + generate_path_plot(modality, better, white) + '/popolazione_media_coda_' + str(i))
@@ -235,8 +239,8 @@ def output_infinite(modality, better, white):
 
     for i in range(len(mean)):
         plot_cumulative_means(mean[i], media_delay_queue[i],
-                              'Cumulative Mean Delay Time (Queue)' + str(i),
-                              'Cumulative Mean Response Time over Batches (Monitor Centre)',
+                              'Tempo di attesa coda ' + code_colori.get(i),
+                              'Tempo di attesa cumulativo sui batch',
                               '/' + generate_path_plot(modality, better, white) + '/cumulative_delay_time_queue_' + str(
                                   i))
 
@@ -336,7 +340,7 @@ def media_analisi_inf(vettori, n_gruppi):
 
 
 if __name__ == "__main__":
-    batch_size = 512
+    batch_size = 4096
     numbers_repetition = 64
     parser = argparse.ArgumentParser(description="Scelta modalità di simulazione")
     parser.add_argument('-m', '--modality', type=str,
