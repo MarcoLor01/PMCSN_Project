@@ -378,7 +378,7 @@ if __name__ == "__main__":
                 raise Exception("Numero di ripetizioni per simulazione ad orizzonte finito <= 0")
 
             print("Inizio simulazione ad orizzonte finito... ")
-            Parameters.STOP = 7 * 1440.0
+            Parameters.STOP = 7 * 1440.0 * 58 * 20
             finite(DEFAULT, numbers_repetition, Parameters.STOP)
             output_finite(numbers_repetition, args.modality, args.better, args.white)
 

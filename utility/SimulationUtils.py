@@ -78,7 +78,7 @@ def graph_data_plot(graph_data, seed, n, filename):
 
         for i in range(n):
             plt.plot(graph_data[i][j], label=seed[i])
-        plt.title("Analisi del transiente")
+        plt.title("Analisi del transitorio")
         plt.xlabel('Ore')
         plt.ylabel("Tempo di attesa per la coda " + code_colori.get(j))
         plt.legend()

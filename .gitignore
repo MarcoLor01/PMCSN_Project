@@ -11,6 +11,7 @@ __pycache__/
 #Out
 utility/__pycache__/
 out/
+plots/
 .idea/
 # Distribution / packaging
 .Python
